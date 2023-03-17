@@ -22,8 +22,8 @@ namespace Cila.OmniChain
 
     interface IChainClient
     {
-        void Push(int position, IEnumerable<OmniChainEvent> events);
-        IEnumerable<OmniChainEvent> Pull(int position);
+        void Push(int position, IEnumerable<DomainEvent> events);
+        IEnumerable<DomainEvent> Pull(int position);
     }
 
     [Function("pull")]
@@ -49,7 +49,7 @@ namespace Cila.OmniChain
         public int Position {get;set;}
 
         [Parameter("DomainEvent[]", "events", 3)]
-        public List<OmniChainEvent>? Events {get;set;}
+        public List<DomainEvent> Events {get;set;}
     }
 
     public class EthChainClient : IChainClient
@@ -58,7 +58,9 @@ namespace Cila.OmniChain
         private ContractHandler _handler;
         private string _privateKey;
 
-        public EthChainClient(string rpc, string contract, string privateKey)
+        private Contract _contract;
+
+        public EthChainClient(string rpc, string contract, string privateKey, string abi)
         {
             
             _privateKey = privateKey;
@@ -66,29 +68,34 @@ namespace Cila.OmniChain
             _web3 = new Web3(account, rpc);
             _web3.Client.OverridingRequestInterceptor = new LoggingInterceptor();
             _handler = _web3.Eth.GetContractHandler(contract);
+            _contract = _web3.Eth.GetContract(abi, contract);
         }
 
         public const int MAX_LIMIT = 1000000;
         public const string AGGREGATE_ID = "0x4215a6F868D07227f1e2827A6613d87A5961B5f6";
 
 
-        public async Task<IEnumerable<OmniChainEvent>> Pull(int position)
+        public async Task<IEnumerable<DomainEvent>> Pull(int position)
         {
              Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, AGGREGATE_ID);
-            var handler = _handler.GetFunction<PullFuncation>();
+            var handler = _contract.GetFunction<PullFuncation>();
             var request = new PullFuncation{
                 StartIndex = position,
                 Limit = MAX_LIMIT,
                 AggregateId = AGGREGATE_ID
             };
-                var result =  await handler.CallAsync<OmniChainEvent[]>(request);
+                var result =  await handler.CallAsync<PullEventsDTO>(request);
                 Console.WriteLine("Chain Service Pull executed: {0}", result);
-                return result;
+                return result.Events;
+                //.Select(x=> {
+                  //  var result = new DomainEvent{Payload = x.Item3, EventType = x.Item2};
+                   // result.EventNumber = x.Item1; 
+                  //  return result;});
 
             //return eventsDto.Events;
         }
 
-        public async Task<string> Push(int position, IEnumerable<OmniChainEvent> events)
+        public async Task<string> Push(int position, IEnumerable<DomainEvent> events)
         {
             var handler = _handler.GetFunction<PushFuncation>();
             var request = new PushFuncation{
@@ -101,12 +108,12 @@ namespace Cila.OmniChain
             return result;
         }
 
-        IEnumerable<OmniChainEvent> IChainClient.Pull(int position)
+        IEnumerable<DomainEvent> IChainClient.Pull(int position)
         {
             return Pull(position).GetAwaiter().GetResult();
         }
 
-        void IChainClient.Push(int position, IEnumerable<OmniChainEvent> events)
+        void IChainClient.Push(int position, IEnumerable<DomainEvent> events)
         {
             Push(position,events).GetAwaiter().GetResult();
         }
@@ -115,10 +122,7 @@ namespace Cila.OmniChain
     [FunctionOutput]
     public class PullEventsDTO: IFunctionOutputDTO
     {
-        [Parameter("uint256", "position", 1)]
-        public BigInteger Position {get;set;}
-
-        [Parameter("DomainEvent[]", "events", 2)]
-        public List<OmniChainEvent> Events {get;set;}
+        [Parameter("DomainEvent[]",order:1)]
+        public DomainEvent[] Events {get;set;}
     }
 }

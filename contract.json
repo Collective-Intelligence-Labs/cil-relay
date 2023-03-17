@@ -1,0 +1,186 @@
+[
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "relay_",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferred",
+  "type": "event"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "aggregateId",
+    "type": "address"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "idx",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum DomainEventType",
+      "name": "t",
+      "type": "uint8"
+     },
+     {
+      "internalType": "bytes",
+      "name": "payload",
+      "type": "bytes"
+     }
+    ],
+    "internalType": "struct DomainEvent",
+    "name": "evnt",
+    "type": "tuple"
+   }
+  ],
+  "name": "append",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "owner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "aggregateId",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "startIndex",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "limit",
+    "type": "uint256"
+   }
+  ],
+  "name": "pull",
+  "outputs": [
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "idx",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum DomainEventType",
+      "name": "t",
+      "type": "uint8"
+     },
+     {
+      "internalType": "bytes",
+      "name": "payload",
+      "type": "bytes"
+     }
+    ],
+    "internalType": "struct DomainEvent[]",
+    "name": "",
+    "type": "tuple[]"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "aggregateId",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "startIndex",
+    "type": "uint256"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "idx",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum DomainEventType",
+      "name": "t",
+      "type": "uint8"
+     },
+     {
+      "internalType": "bytes",
+      "name": "payload",
+      "type": "bytes"
+     }
+    ],
+    "internalType": "struct DomainEvent[]",
+    "name": "evnts",
+    "type": "tuple[]"
+   }
+  ],
+  "name": "push",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "renounceOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "transferOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ }
+]

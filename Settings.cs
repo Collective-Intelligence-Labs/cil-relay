@@ -19,5 +19,13 @@ namespace Cila
         public string PrivateKey { get; set; }  
 
         public string Contract { get; set; }
+
+        public string AbiFile {get;set;}
+
+        private string _abi;
+        public string Abi {get {
+                _abi = _abi ?? File.ReadAllText(AbiFile);
+            return _abi;
+        }}
     }
 }

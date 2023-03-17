@@ -9,8 +9,8 @@ namespace Cila
         //List<IAggregateState> Aggregates {get;set;}
     
         void Update();
-        IEnumerable<OmniChainEvent> GetNewEvents(int length);
-        void PushNewEvents(IEnumerable<OmniChainEvent> newEvents);
+        IEnumerable<DomainEvent> GetNewEvents(int length);
+        void PushNewEvents(IEnumerable<DomainEvent> newEvents);
 
         int Length {get;}
     }
@@ -21,14 +21,14 @@ namespace Cila
         public int Length { get => _events.Count; }
         internal IChainClient ChainService { get => chainService; set => chainService = value; }
 
-        private SortedList<int,OmniChainEvent> _events = new SortedList<int, OmniChainEvent>();
+        private SortedList<int,DomainEvent> _events = new SortedList<int, DomainEvent>();
         private IChainClient chainService;
 
         public ExecutionChain()
         {
         }
 
-        public IEnumerable<OmniChainEvent> GetNewEvents(int length)
+        public IEnumerable<DomainEvent> GetNewEvents(int length)
         {
             if (length >= Length)
             {
@@ -46,12 +46,12 @@ namespace Cila
             AddNewEvents(newEvents);
         }
 
-        public void PushNewEvents(IEnumerable<OmniChainEvent> newEvents)
+        public void PushNewEvents(IEnumerable<DomainEvent> newEvents)
         {
             AddNewEvents(newEvents);
         }
 
-        private void AddNewEvents(IEnumerable<OmniChainEvent> newEvents)
+        private void AddNewEvents(IEnumerable<DomainEvent> newEvents)
         {
             if (newEvents == null)
             {
@@ -59,7 +59,7 @@ namespace Cila
             }
             foreach (var e in newEvents)
             {
-                _events.Add(e.EventNumber, e);
+                _events.Add((int)e.EventNumber, e);
             }
         }
     }
