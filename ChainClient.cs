@@ -108,7 +108,7 @@ namespace Cila.OmniChain
             _handler = _web3.Eth.GetContractHandler(contract);
             _contract = _web3.Eth.GetContract(abi, contract);
             _eventHandler = _contract.GetEvent<EthDomainEvent>();
-            _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateEarliest);
+            _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateEarliest(),BlockParameter.CreateLatest());
             //
         }
 
@@ -127,7 +127,7 @@ namespace Cila.OmniChain
                     list.Add(Deserizlize(log.Event.Payload));
                     
                 }
-                _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateLatest);
+                _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateLatest(),BlockParameter.CreateLatest());
                 return list;
         }
 
