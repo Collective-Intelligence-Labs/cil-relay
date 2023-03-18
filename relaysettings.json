@@ -3,16 +3,16 @@
       "RelayId": "ID",
       "Chains": [
         {
-            "Rpc": "https://eth-goerli.public.blastapi.io",
-            "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
-            "Contract": "0xd13d7fB86ea78207385740573F3B281F0009B8c4",
-            "AbiFile": "contract.json"
+          "Rpc": "https://goerli.blockpi.network/v1/rpc/public",
+          "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
+          "Contract": "0xd13d7fB86ea78207385740573F3B281F0009B8c4",
+          "AbiFile": "contract.json"
         },
         {
-            "Rpc": "https://eth-goerli.public.blastapi.io",
-            "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
-            "Contract": "0xd13d7fB86ea78207385740573F3B281F0009B8c4",
-            "AbiFile": "contract.json"
+          "Rpc": "https://rpc.ankr.com/eth_goerli",
+          "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
+          "Contract": "0xd13d7fB86ea78207385740573F3B281F0009B8c4",
+          "AbiFile": "contract.json"
         }
       ]
     }

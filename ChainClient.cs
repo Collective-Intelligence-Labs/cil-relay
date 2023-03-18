@@ -9,6 +9,7 @@ using Nethereum.JsonRpc.Client;
 using static Nethereum.RPC.Eth.DTOs.BlockParameter;
 using Google.Protobuf;
 using OmniChain;
+using Nethereum.Hex.HexTypes;
 
 namespace Cila.OmniChain
 {
@@ -92,7 +93,7 @@ namespace Cila.OmniChain
     {
         private Web3 _web3;
         private ContractHandler _handler;
-        private Event<EthDomainEvent> _eventHandler;
+        private Event<OmnichainEvent> _eventHandler;
         private NewFilterInput _filterInput;
         private string _privateKey;
 
@@ -107,8 +108,10 @@ namespace Cila.OmniChain
             _web3.Client.OverridingRequestInterceptor = new LoggingInterceptor();
             _handler = _web3.Eth.GetContractHandler(contract);
             _contract = _web3.Eth.GetContract(abi, contract);
-            _eventHandler = _contract.GetEvent<EthDomainEvent>();
-            _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateEarliest(),BlockParameter.CreateLatest());
+            _eventHandler = _handler.GetEvent<OmnichainEvent>();
+
+            var block = _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync().Result;
+            _filterInput = _eventHandler.CreateFilterInput(new BlockParameter(block.ToUlong() - 1024), BlockParameter.CreateLatest());
             //
         }
 
@@ -122,7 +125,7 @@ namespace Cila.OmniChain
             var list = new List<DomainEvent>();
                 foreach (var log in logs)
                 {
-                    Console.WriteLine($"Event Value: {log.Event.Value}, Sender: {log.Event.Sender}");
+                    Console.WriteLine($"Event Value: {log.Event.Value}, Sender: {log.Event.Type}");
                     //list.Add(OmniChainSerializer.DeserializeWithMessageType(log.Event.Payload));
                     list.Add(Deserizlize(log.Event.Payload));
                     
@@ -176,16 +179,16 @@ namespace Cila.OmniChain
         public byte[][] Events {get;set;}
     }
 
-    [Event("EthDomainEvent")]
-    public class EthDomainEvent: IEventDTO
+    [Event("OmnichainEvent")]
+    public class OmnichainEvent: IEventDTO
     {
-        [Parameter("uint256", "eventNumber", 1, true)]
+        [Parameter("uint64", "_idx", 1, true)]
         public BigInteger Value { get; set; }
 
-        [Parameter("address", "sender", 2, true)]
-        public string Sender { get; set; }
+        [Parameter("uint", "_type", 2, true)]
+        public int Type { get; set; }
 
-        [Parameter("bytes", "payload", 3, true)]
+        [Parameter("bytes", "_payload", 3, true)]
         public byte[] Payload { get; set; }
     }
 }
