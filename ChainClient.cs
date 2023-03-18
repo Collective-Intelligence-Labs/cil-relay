@@ -1,12 +1,14 @@
 
 using Nethereum.Web3;
 using Nethereum.Contracts;
-
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.RPC.Eth.DTOs;
 using System.Numerics;
 using Nethereum.Contracts.ContractHandlers;
 using Nethereum.JsonRpc.Client;
+using static Nethereum.RPC.Eth.DTOs.BlockParameter;
+using Google.Protobuf;
+using OmniChain;
 
 namespace Cila.OmniChain
 {
@@ -22,8 +24,42 @@ namespace Cila.OmniChain
 
     interface IChainClient
     {
+        
+
         void Push(int position, IEnumerable<DomainEvent> events);
         IEnumerable<DomainEvent> Pull(int position);
+    }
+
+    public class ChainClientMock : IChainClient
+    {
+        private List<DomainEvent> _events;
+
+        public ChainClientMock(int number)
+        {
+            _events = new List<DomainEvent>();
+            for (int i = 0; i < number; i++)
+            {
+                _events.Add(new DomainEvent{
+                EventNumber = i,
+                EventType = 1,
+                Payload = new byte[]{1,1,1,1,1}
+            });
+            }
+        }
+
+        public IEnumerable<DomainEvent> Pull(int position)
+        {
+            for (int i = position; i < _events.Count; i++)
+            {
+                yield return _events[i];
+            }
+        }
+
+        public void Push(int position, IEnumerable<DomainEvent> events)
+        {
+            _events.RemoveRange(position,_events.Count - position);
+            _events.AddRange(events.ToArray());
+        }
     }
 
     [Function("pull")]
@@ -56,6 +92,8 @@ namespace Cila.OmniChain
     {
         private Web3 _web3;
         private ContractHandler _handler;
+        private Event<EthDomainEvent> _eventHandler;
+        private NewFilterInput _filterInput;
         private string _privateKey;
 
         private Contract _contract;
@@ -69,6 +107,9 @@ namespace Cila.OmniChain
             _web3.Client.OverridingRequestInterceptor = new LoggingInterceptor();
             _handler = _web3.Eth.GetContractHandler(contract);
             _contract = _web3.Eth.GetContract(abi, contract);
+            _eventHandler = _contract.GetEvent<EthDomainEvent>();
+            _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateEarliest);
+            //
         }
 
         public const int MAX_LIMIT = 1000000;
@@ -77,22 +118,26 @@ namespace Cila.OmniChain
 
         public async Task<IEnumerable<DomainEvent>> Pull(int position)
         {
-             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, AGGREGATE_ID);
-            var handler = _contract.GetFunction<PullFuncation>();
-            var request = new PullFuncation{
-                StartIndex = position,
-                Limit = MAX_LIMIT,
-                AggregateId = AGGREGATE_ID
-            };
-                var result =  await handler.CallAsync<PullEventsDTO>(request);
-                Console.WriteLine("Chain Service Pull executed: {0}", result);
-                return result.Events;
-                //.Select(x=> {
-                  //  var result = new DomainEvent{Payload = x.Item3, EventType = x.Item2};
-                   // result.EventNumber = x.Item1; 
-                  //  return result;});
+            var logs = await _eventHandler.GetAllChangesAsync(_filterInput);
+            var list = new List<DomainEvent>();
+                foreach (var log in logs)
+                {
+                    Console.WriteLine($"Event Value: {log.Event.Value}, Sender: {log.Event.Sender}");
+                    //list.Add(OmniChainSerializer.DeserializeWithMessageType(log.Event.Payload));
+                    list.Add(Deserizlize(log.Event.Payload));
+                    
+                }
+                _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateLatest);
+                return list;
+        }
 
-            //return eventsDto.Events;
+        public async Task ObserveEventAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                // Wait for a short period before checking for new events again.
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            }
         }
 
         public async Task<string> Push(int position, IEnumerable<DomainEvent> events)
@@ -106,6 +151,11 @@ namespace Cila.OmniChain
             var result = await handler.CallAsync<string>(request);
             Console.WriteLine("Chain Service Push} executed: {0}", result);
             return result;
+        }
+
+        public DomainEvent Deserizlize(byte[] data)
+        {
+            return new DomainEvent();
         }
 
         IEnumerable<DomainEvent> IChainClient.Pull(int position)
@@ -122,7 +172,20 @@ namespace Cila.OmniChain
     [FunctionOutput]
     public class PullEventsDTO: IFunctionOutputDTO
     {
-        [Parameter("DomainEvent[]",order:1)]
-        public DomainEvent[] Events {get;set;}
+        [Parameter("bytes[]",order:1)]
+        public byte[][] Events {get;set;}
+    }
+
+    [Event("EthDomainEvent")]
+    public class EthDomainEvent: IEventDTO
+    {
+        [Parameter("uint256", "eventNumber", 1, true)]
+        public BigInteger Value { get; set; }
+
+        [Parameter("address", "sender", 2, true)]
+        public string Sender { get; set; }
+
+        [Parameter("bytes", "payload", 3, true)]
+        public byte[] Payload { get; set; }
     }
 }

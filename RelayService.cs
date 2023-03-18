@@ -12,10 +12,12 @@ namespace Cila
         {
             _chains = new List<IExecutionChain>();
             Id = config.RelayId;
+            //var random = new Random();
             foreach (var item in config.Chains)
             {
                 var chain1 = new ExecutionChain();
                 chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi);
+                //chain1.ChainService = new ChainClientMock(random.Next(10));
                 Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}", item.Rpc,item.Contract,item.PrivateKey);
                 _chains.Add(chain1);
             }
