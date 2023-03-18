@@ -6,9 +6,6 @@ using Nethereum.RPC.Eth.DTOs;
 using System.Numerics;
 using Nethereum.Contracts.ContractHandlers;
 using Nethereum.JsonRpc.Client;
-using static Nethereum.RPC.Eth.DTOs.BlockParameter;
-using Google.Protobuf;
-using OmniChain;
 using Nethereum.Hex.HexTypes;
 
 namespace Cila.OmniChain
@@ -125,9 +122,14 @@ namespace Cila.OmniChain
             var list = new List<DomainEvent>();
                 foreach (var log in logs)
                 {
-                    Console.WriteLine($"Event Value: {log.Event.Value}, Sender: {log.Event.Type}");
+                    Console.WriteLine($"Event Value: {log.Event.Version}, Sender: {log.Event.Type}");
                     //list.Add(OmniChainSerializer.DeserializeWithMessageType(log.Event.Payload));
-                    list.Add(Deserizlize(log.Event.Payload));
+                    list.Add(new DomainEvent
+                    {
+                        Payload = log.Event.Payload,
+                        EventNumber = log.Event.Version,
+                        EventType = log.Event.Type
+                    });
                     
                 }
                 _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateLatest(),BlockParameter.CreateLatest());
@@ -183,10 +185,10 @@ namespace Cila.OmniChain
     public class OmnichainEvent: IEventDTO
     {
         [Parameter("uint64", "_idx", 1, true)]
-        public BigInteger Value { get; set; }
+        public BigInteger Version { get; set; }
 
-        [Parameter("uint", "_type", 2, true)]
-        public int Type { get; set; }
+        [Parameter("uint8", "_type", 2, true)]
+        public byte Type { get; set; }
 
         [Parameter("bytes", "_payload", 3, true)]
         public byte[] Payload { get; set; }
