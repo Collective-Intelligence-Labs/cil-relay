@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package messages;
+
+option csharp_namespace = "Cila";
+
+enum DomainEventType {
+  UNSPECIFIED = 0;
+  NFT_MINTED = 1;
+  NFT_TRANSFERED = 2;
+};
+
+message DomainEvent1 {
+  uint64 evnt_idx = 1;
+  DomainEventType evnt_type = 2;
+  bytes evnt_payload = 3;
+}
+
+message DomainEvent {
+  uint64 evnt_idx = 1;
+  DomainEventType evnt_type = 2;
+  bytes evnt_payload = 3;
+}
+
+message NFTMintedPayload {
+    bytes hash = 1;
+    bytes owner = 2;
+}
+
+message NFTTransferedPayload {
+    bytes hash = 1;
+    bytes from = 2;
+    bytes to = 3;
+}

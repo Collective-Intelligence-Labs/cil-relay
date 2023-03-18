@@ -6,9 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.22.1" />
     <PackageReference Include="Nethereum.Web3" Version="4.13.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.52.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Grpc.Net.Client" Version="2.52.0" />
+    <PackageReference Include="Grpc" Version="2.46.6" />
   </ItemGroup>
-
+   <ItemGroup>
+    <Protobuf Include="Protos\messages.proto" GrpcServices="Client" />
+  </ItemGroup>
 </Project>

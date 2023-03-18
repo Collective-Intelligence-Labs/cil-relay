@@ -59,7 +59,7 @@ namespace Cila
             }
             foreach (var e in newEvents)
             {
-                _events.Add((int)e.EventNumber, e);
+                _events.Add((int)e.EvntIdx, e);
             }
         }
     }
