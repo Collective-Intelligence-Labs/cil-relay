@@ -12,13 +12,13 @@ namespace Cila
     [FunctionOutput]
     public class DomainEvent
     {
-        [Parameter("uint256", "idx", 1)]
-        public BigInteger EventNumber { get; set; }
+        [Parameter("uint64", "evnt_idx", 1)]
+        public ulong EventNumber { get; set; }
 
-        [Parameter("uint8", "t", 2)]
+        [Parameter("DomainEventType", "evnt_type", 2)]
         public byte EventType {get;set;}
 
-        [Parameter("bytes", "payload", 3)]
+        [Parameter("bytes", "evnt_payload", 3)]
         public byte[] Payload {get;set;}
     }
 }

@@ -7,6 +7,7 @@ using System.Numerics;
 using Nethereum.Contracts.ContractHandlers;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Hex.HexTypes;
+using OmniChain;
 
 namespace Cila.OmniChain
 {
@@ -32,10 +33,10 @@ namespace Cila.OmniChain
     {
         private List<DomainEvent> _events;
 
-        public ChainClientMock(int number)
+        public ChainClientMock(ulong number)
         {
             _events = new List<DomainEvent>();
-            for (int i = 0; i < number; i++)
+            for (ulong i = 0; i < number; i++)
             {
                 _events.Add(new DomainEvent{
                 EventNumber = i,
@@ -116,7 +117,23 @@ namespace Cila.OmniChain
         public const string AGGREGATE_ID = "0x4215a6F868D07227f1e2827A6613d87A5961B5f6";
 
 
+           
+
         public async Task<IEnumerable<DomainEvent>> Pull(int position)
+        {
+             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, AGGREGATE_ID);
+             var handler = _handler.GetFunction<PullFuncation>();
+             var request = new PullFuncation{
+                StartIndex = position,
+                    Limit = MAX_LIMIT,
+                    AggregateId = AGGREGATE_ID
+                };
+                var result =  await handler.CallAsync<PullEventsDTO>(request);
+                Console.WriteLine("Chain Service Pull executed: {0}", result);
+                return result.Events;   
+        }
+
+        public async Task<IEnumerable<DomainEvent>> Pull3(int position)
         {
             var logs = await _eventHandler.GetAllChangesAsync(_filterInput);
             var list = new List<DomainEvent>();
@@ -130,6 +147,7 @@ namespace Cila.OmniChain
                         EventNumber = log.Event.Version,
                         EventType = log.Event.Type
                     });
+                    
                     
                 }
                 _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateLatest(),BlockParameter.CreateLatest());
@@ -178,14 +196,14 @@ namespace Cila.OmniChain
     public class PullEventsDTO: IFunctionOutputDTO
     {
         [Parameter("bytes[]",order:1)]
-        public byte[][] Events {get;set;}
+        public List<DomainEvent> Events {get;set;}
     }
 
     [Event("OmnichainEvent")]
     public class OmnichainEvent: IEventDTO
     {
         [Parameter("uint64", "_idx", 1, true)]
-        public BigInteger Version { get; set; }
+        public ulong Version { get; set; }
 
         [Parameter("uint8", "_type", 2, true)]
         public byte Type { get; set; }

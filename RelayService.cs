@@ -12,7 +12,7 @@ namespace Cila
         {
             _chains = new List<IExecutionChain>();
             Id = config.RelayId;
-            //var random = new Random();
+            var random = new Random();
             foreach (var item in config.Chains)
             {
                 var chain1 = new ExecutionChain();
