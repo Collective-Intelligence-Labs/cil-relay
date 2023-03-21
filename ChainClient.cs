@@ -74,6 +74,19 @@ namespace Cila.OmniChain
         public int Limit {get;set;}
     }
 
+    [Function("pullBytes")]
+    public class PullBytesFuncation: FunctionMessage
+    {
+        [Parameter("address", "aggregateId", 1)]
+        public string AggregateId {get;set;}
+
+        [Parameter("uint", "startIndex", 2)]
+        public int StartIndex {get;set;}
+
+        [Parameter("uint", "limit", 3)]
+        public int Limit {get;set;}
+    }
+
     [Function("push")]
     public class PushFuncation: FunctionMessage
     {
@@ -114,7 +127,7 @@ namespace Cila.OmniChain
         }
 
         public const int MAX_LIMIT = 1000000;
-        public const string AGGREGATE_ID = "0x4215a6F868D07227f1e2827A6613d87A5961B5f6";
+        public const string AGGREGATE_ID = "0x72d6b903899ED707306B7B1B5DD3D3b42195870c";
 
 
            
@@ -122,15 +135,16 @@ namespace Cila.OmniChain
         public async Task<IEnumerable<DomainEvent>> Pull(int position)
         {
              Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, AGGREGATE_ID);
-             var handler = _handler.GetFunction<PullFuncation>();
-             var request = new PullFuncation{
+             var handler = _handler.GetFunction<PullBytesFuncation>();
+             var request = new PullBytesFuncation{
                 StartIndex = position,
                     Limit = MAX_LIMIT,
                     AggregateId = AGGREGATE_ID
                 };
                 var result =  await handler.CallAsync<PullEventsDTO>(request);
                 Console.WriteLine("Chain Service Pull executed: {0}", result);
-                return result.Events;   
+                //return result.Events;   
+                return Enumerable.Empty<DomainEvent>();
         }
 
         public async Task<IEnumerable<DomainEvent>> Pull3(int position)
@@ -196,7 +210,7 @@ namespace Cila.OmniChain
     public class PullEventsDTO: IFunctionOutputDTO
     {
         [Parameter("bytes[]",order:1)]
-        public List<DomainEvent> Events {get;set;}
+        public List<byte[]> Events {get;set;}
     }
 
     [Event("OmnichainEvent")]
