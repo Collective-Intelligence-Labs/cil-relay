@@ -9,32 +9,32 @@ namespace Cila
         //List<IAggregateState> Aggregates {get;set;}
     
         void Update();
-        IEnumerable<DomainEvent> GetNewEvents(int length);
+        IEnumerable<DomainEvent> GetNewEvents(ulong length);
         void PushNewEvents(IEnumerable<DomainEvent> newEvents);
 
-        int Length {get;}
+        ulong Length {get;}
     }
 
     public class ExecutionChain : IExecutionChain
     {
         public string ID { get; set; }
-        public int Length { get => _events.Count; }
+        public ulong Length { get => (ulong)_events.Count; }
         internal IChainClient ChainService { get => chainService; set => chainService = value; }
 
-        private SortedList<int,DomainEvent> _events = new SortedList<int, DomainEvent>();
+        private SortedList<ulong,DomainEvent> _events = new SortedList<ulong, DomainEvent>();
         private IChainClient chainService;
 
         public ExecutionChain()
         {
         }
 
-        public IEnumerable<DomainEvent> GetNewEvents(int length)
+        public IEnumerable<DomainEvent> GetNewEvents(ulong length)
         {
             if (length >= Length)
             {
                 yield break;
             }
-            for (int i = length - 1 ; i < Length; i++)
+            for (ulong i = length - 1 ; i < Length; i++)
             {
                 yield return _events[i];
             } 
@@ -59,7 +59,11 @@ namespace Cila
             }
             foreach (var e in newEvents)
             {
-                _events.Add((int)e.EventNumber, e);
+                if (e.EvntIdx < (ulong)_events.Count)
+                {
+                    continue;
+                }
+                _events.Add(e.EvntIdx, e);
             }
         }
     }

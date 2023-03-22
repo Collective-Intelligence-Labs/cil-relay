@@ -23,43 +23,13 @@ namespace Cila.OmniChain
 
     interface IChainClient
     {
-        
-
-        void Push(int position, IEnumerable<DomainEvent> events);
-        IEnumerable<DomainEvent> Pull(int position);
+        void Push(ulong position, IEnumerable<DomainEvent> events);
+        Task<string> PushAsync(ulong position, IEnumerable<DomainEvent> events);
+        IEnumerable<DomainEvent> Pull(ulong position);
+        Task<IEnumerable<DomainEvent>> PullAsync(ulong position);
     }
 
-    public class ChainClientMock : IChainClient
-    {
-        private List<DomainEvent> _events;
-
-        public ChainClientMock(ulong number)
-        {
-            _events = new List<DomainEvent>();
-            for (ulong i = 0; i < number; i++)
-            {
-                _events.Add(new DomainEvent{
-                EventNumber = i,
-                EventType = 1,
-                Payload = new byte[]{1,1,1,1,1}
-            });
-            }
-        }
-
-        public IEnumerable<DomainEvent> Pull(int position)
-        {
-            for (int i = position; i < _events.Count; i++)
-            {
-                yield return _events[i];
-            }
-        }
-
-        public void Push(int position, IEnumerable<DomainEvent> events)
-        {
-            _events.RemoveRange(position,_events.Count - position);
-            _events.AddRange(events.ToArray());
-        }
-    }
+   
 
     [Function("pull")]
     public class PullFuncation: FunctionMessage
@@ -129,61 +99,28 @@ namespace Cila.OmniChain
         public const int MAX_LIMIT = 1000000;
         public const string AGGREGATE_ID = "0x72d6b903899ED707306B7B1B5DD3D3b42195870c";
 
-
-           
-
-        public async Task<IEnumerable<DomainEvent>> Pull(int position)
+        public async Task<IEnumerable<DomainEvent>> PullAsync(ulong position)
         {
              Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, AGGREGATE_ID);
              var handler = _handler.GetFunction<PullBytesFuncation>();
              var request = new PullBytesFuncation{
-                StartIndex = position,
+                StartIndex = (int)position,
                     Limit = MAX_LIMIT,
                     AggregateId = AGGREGATE_ID
                 };
                 var result =  await handler.CallAsync<PullEventsDTO>(request);
                 Console.WriteLine("Chain Service Pull executed: {0}", result);
                 //return result.Events;   
-                return Enumerable.Empty<DomainEvent>();
+                return result.Events.Select(x=> OmniChainSerializer.DeserializeDomainEvent(x));
         }
 
-        public async Task<IEnumerable<DomainEvent>> Pull3(int position)
-        {
-            var logs = await _eventHandler.GetAllChangesAsync(_filterInput);
-            var list = new List<DomainEvent>();
-                foreach (var log in logs)
-                {
-                    Console.WriteLine($"Event Value: {log.Event.Version}, Sender: {log.Event.Type}");
-                    //list.Add(OmniChainSerializer.DeserializeWithMessageType(log.Event.Payload));
-                    list.Add(new DomainEvent
-                    {
-                        Payload = log.Event.Payload,
-                        EventNumber = log.Event.Version,
-                        EventType = log.Event.Type
-                    });
-                    
-                    
-                }
-                _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateLatest(),BlockParameter.CreateLatest());
-                return list;
-        }
-
-        public async Task ObserveEventAsync(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                // Wait for a short period before checking for new events again.
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-            }
-        }
-
-        public async Task<string> Push(int position, IEnumerable<DomainEvent> events)
+        public async Task<string> PushAsync(ulong position, IEnumerable<DomainEvent> events)
         {
             var handler = _handler.GetFunction<PushFuncation>();
             var request = new PushFuncation{
                 Events = events.ToList(),
-                Position = position,
-                AggregateId = "0"
+                Position = (int)position,
+                AggregateId = AGGREGATE_ID
             };
             var result = await handler.CallAsync<string>(request);
             Console.WriteLine("Chain Service Push} executed: {0}", result);
@@ -195,14 +132,14 @@ namespace Cila.OmniChain
             return new DomainEvent();
         }
 
-        IEnumerable<DomainEvent> IChainClient.Pull(int position)
+        IEnumerable<DomainEvent> IChainClient.Pull(ulong position)
         {
-            return Pull(position).GetAwaiter().GetResult();
+            return PullAsync(position).GetAwaiter().GetResult();
         }
 
-        void IChainClient.Push(int position, IEnumerable<DomainEvent> events)
+        void IChainClient.Push(ulong position, IEnumerable<DomainEvent> events)
         {
-            Push(position,events).GetAwaiter().GetResult();
+            PushAsync(position,events).GetAwaiter().GetResult();
         }
     }
 

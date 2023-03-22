@@ -1,0 +1,3 @@
+protoc --proto_path=Proto --csharp_out=Scheme --csharp_opt=file_extension=.g.cs  Proto/event.proto 
+protoc --proto_path=Proto --csharp_out=Scheme --csharp_opt=file_extension=.g.cs  Proto/operation.proto
+protoc --proto_path=Proto --csharp_out=Scheme --csharp_opt=file_extension=.g.cs  Proto/command.proto
