@@ -78,9 +78,11 @@ namespace Cila.OmniChain
         private NewFilterInput _filterInput;
         private string _privateKey;
 
+        private string _singletonAggregateId;
+
         private Contract _contract;
 
-        public EthChainClient(string rpc, string contract, string privateKey, string abi)
+        public EthChainClient(string rpc, string contract, string privateKey, string abi, string singletonAggregateID)
         {
             
             _privateKey = privateKey;
@@ -90,23 +92,22 @@ namespace Cila.OmniChain
             _handler = _web3.Eth.GetContractHandler(contract);
             _contract = _web3.Eth.GetContract(abi, contract);
             _eventHandler = _handler.GetEvent<OmnichainEvent>();
-
+            _singletonAggregateId = singletonAggregateID;
             var block = _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync().Result;
             _filterInput = _eventHandler.CreateFilterInput(new BlockParameter(block.ToUlong() - 1024), BlockParameter.CreateLatest());
             //
         }
 
         public const int MAX_LIMIT = 1000000;
-        public const string AGGREGATE_ID = "0x72d6b903899ED707306B7B1B5DD3D3b42195870c";
 
         public async Task<IEnumerable<DomainEvent>> PullAsync(ulong position)
         {
-             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, AGGREGATE_ID);
+             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, _singletonAggregateId);
              var handler = _handler.GetFunction<PullBytesFuncation>();
              var request = new PullBytesFuncation{
                 StartIndex = (int)position,
                     Limit = MAX_LIMIT,
-                    AggregateId = AGGREGATE_ID
+                    AggregateId = _singletonAggregateId
                 };
                 var result =  await handler.CallAsync<PullEventsDTO>(request);
                 Console.WriteLine("Chain Service Pull executed: {0}", result);
@@ -120,7 +121,7 @@ namespace Cila.OmniChain
             var request = new PushFuncation{
                 Events = events.ToList(),
                 Position = (int)position,
-                AggregateId = AGGREGATE_ID
+                AggregateId = _singletonAggregateId
             };
             var result = await handler.CallAsync<string>(request);
             Console.WriteLine("Chain Service Push} executed: {0}", result);

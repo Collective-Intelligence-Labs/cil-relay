@@ -6,13 +6,15 @@
           "Rpc": "https://goerli.blockpi.network/v1/rpc/public",
           "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
           "Contract": "0xB75d05d032fE8b0ECe0b991111f5a08Ef1d12CbF",
-          "AbiFile": "contract.json"
+          "AbiFile": "contract.json",
+          "SingletonAggregateID": "0x72d6b903899ED707306B7B1B5DD3D3b42195870c"
         },
         {
           "Rpc": "https://rpc.ankr.com/eth_goerli",
           "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
           "Contract": "0xB75d05d032fE8b0ECe0b991111f5a08Ef1d12CbF",
-          "AbiFile": "contract.json"
+          "AbiFile": "contract.json",
+          "SingletonAggregateID": "0x72d6b903899ED707306B7B1B5DD3D3b42195870c"
         }
       ]
     }
