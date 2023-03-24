@@ -34,7 +34,7 @@ namespace Cila
             {
                 yield break;
             }
-            for (ulong i = length - 1 ; i < Length; i++)
+            for (ulong i = length ; i < Length; i++)
             {
                 yield return _events[i];
             } 

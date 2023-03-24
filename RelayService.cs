@@ -46,7 +46,7 @@ namespace Cila
                 {
                     continue;
                 }
-                var newEvents = leader.GetNewEvents(chain.Length); 
+                var newEvents = leader.GetNewEvents(chain.Length).ToList(); 
                 chain.PushNewEvents(newEvents);
             }
         }
