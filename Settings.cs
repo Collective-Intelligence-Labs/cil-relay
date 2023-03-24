@@ -6,6 +6,8 @@ namespace Cila
 
         public List<ExecutionChainSettings> Chains {get;set;}
 
+        public string MongoDBConnectionString {get;set;}
+
         public OmniChainRelaySettings()
         {
             Chains = new List<ExecutionChainSettings>();

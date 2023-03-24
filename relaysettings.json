@@ -1,6 +1,7 @@
 {
     "RelaySettings": {
       "RelayId": "ID",
+      "MongoDBConnectionString": "mongodb://localhost:27017",
       "Chains": [
         {
           "Rpc": "https://goerli.blockpi.network/v1/rpc/public",
