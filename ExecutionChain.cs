@@ -48,6 +48,7 @@ namespace Cila
 
         public void PushNewEvents(IEnumerable<DomainEvent> newEvents)
         {
+            chainService.Push(Length,newEvents);
             AddNewEvents(newEvents);
         }
 

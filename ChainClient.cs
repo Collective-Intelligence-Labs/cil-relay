@@ -34,7 +34,7 @@ namespace Cila.OmniChain
     [Function("pull")]
     public class PullFuncation: FunctionMessage
     {
-        [Parameter("address", "aggregateId", 1)]
+        [Parameter("string", "aggregateId", 1)]
         public string AggregateId {get;set;}
 
         [Parameter("uint", "startIndex", 2)]
@@ -47,7 +47,7 @@ namespace Cila.OmniChain
     [Function("pullBytes")]
     public class PullBytesFuncation: FunctionMessage
     {
-        [Parameter("address", "aggregateId", 1)]
+        [Parameter("string", "aggregateId", 1)]
         public string AggregateId {get;set;}
 
         [Parameter("uint", "startIndex", 2)]
@@ -60,7 +60,7 @@ namespace Cila.OmniChain
     [Function("push")]
     public class PushFuncation: FunctionMessage
     {
-        [Parameter("address", "_aggregateId", 1)]
+        [Parameter("string", "_aggregateId", 1)]
         public string AggregateId { get; set; }
 
         [Parameter("uint", "_position", 2)]
@@ -69,6 +69,20 @@ namespace Cila.OmniChain
         [Parameter("DomainEvent[]", "events", 3)]
         public List<DomainEvent> Events {get;set;}
     }
+
+     [Function("pushBytes")]
+    public class PushBytesFuncation: FunctionMessage
+    {
+        [Parameter("string", "_aggregateId", 1)]
+        public string AggregateId { get; set; }
+
+        [Parameter("uint", "_position", 2)]
+        public int Position {get;set;}
+
+        [Parameter("bytes[]", "events", 3)]
+        public List<byte[]> Events {get;set;}
+    }
+
 
     public class EthChainClient : IChainClient
     {
@@ -117,9 +131,9 @@ namespace Cila.OmniChain
 
         public async Task<string> PushAsync(ulong position, IEnumerable<DomainEvent> events)
         {
-            var handler = _handler.GetFunction<PushFuncation>();
-            var request = new PushFuncation{
-                Events = events.ToList(),
+            var handler = _handler.GetFunction<PushBytesFuncation>();
+            var request = new PushBytesFuncation{
+                Events = events.Select(x=> OmniChainSerializer.Serialize(x)).ToList(),
                 Position = (int)position,
                 AggregateId = _singletonAggregateId
             };

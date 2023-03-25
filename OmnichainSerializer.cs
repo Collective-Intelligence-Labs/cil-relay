@@ -14,6 +14,11 @@ namespace OmniChain
             return msg;
         }
 
+        public static byte[] Serialize(DomainEvent e)
+        {
+            return e.ToByteArray();
+        }
+
         public static void ValidateData(byte[] data)
         {
             if (data == null || data.Length < 2)

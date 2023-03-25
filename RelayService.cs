@@ -17,13 +17,13 @@ namespace Cila
             {
                 var chain1 = new ExecutionChain();
                 chain1.ID = "Id" + new Random().Next();
-                chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi, item.SingletonAggregateID);
+                chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi, config.SingletonAggregateID);
                 //chain1.ChainService = new ChainClientMock(random.Next(10));
                 Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}", item.Rpc,item.Contract,item.PrivateKey);
                 _chains.Add(chain1);
             }
         }
-        public static bool Mocker = true;
+        
         public void SyncAllChains()
         {
             //fetch the latest state for each chains
@@ -47,7 +47,10 @@ namespace Cila
                     continue;
                 }
                 var newEvents = leader.GetNewEvents(chain.Length).ToList(); 
-                chain.PushNewEvents(newEvents);
+                if (newEvents.Any())
+                {
+                    chain.PushNewEvents(newEvents);
+                }
             }
         }
     }

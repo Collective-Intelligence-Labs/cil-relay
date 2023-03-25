@@ -8,6 +8,8 @@ namespace Cila
 
         public string MongoDBConnectionString {get;set;}
 
+        public string SingletonAggregateID { get; set; }
+
         public OmniChainRelaySettings()
         {
             Chains = new List<ExecutionChainSettings>();
@@ -23,8 +25,6 @@ namespace Cila
         public string Contract { get; set; }
 
         public string AbiFile {get;set;}
-
-        public string SingletonAggregateID { get; set; }
 
         
         private string _abi;
