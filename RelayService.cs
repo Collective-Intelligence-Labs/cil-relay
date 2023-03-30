@@ -19,11 +19,12 @@ namespace Cila
                 chain1.ID = "Id" + new Random().Next();
                 chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi, config.SingletonAggregateID);
                 //chain1.ChainService = new ChainClientMock(random.Next(10));
-                Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}", item.Rpc,item.Contract,item.PrivateKey);
+                var relay = chain1.ChainService.GetRelayPermission().GetAwaiter().GetResult();
+                Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}, Relay: {3}", item.Rpc,item.Contract,item.PrivateKey, relay);
                 _chains.Add(chain1);
             }
         }
-        
+
         public void SyncAllChains()
         {
             //fetch the latest state for each chains

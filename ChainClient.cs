@@ -8,6 +8,7 @@ using Nethereum.Contracts.ContractHandlers;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Hex.HexTypes;
 using OmniChain;
+using Nethereum.Web3.Accounts;
 
 namespace Cila.OmniChain
 {
@@ -27,9 +28,8 @@ namespace Cila.OmniChain
         Task<string> PushAsync(ulong position, IEnumerable<DomainEvent> events);
         IEnumerable<DomainEvent> Pull(ulong position);
         Task<IEnumerable<DomainEvent>> PullAsync(ulong position);
+        Task<string> GetRelayPermission();
     }
-
-   
 
     [Function("pull")]
     public class PullFuncation: FunctionMessage
@@ -70,13 +70,13 @@ namespace Cila.OmniChain
         public List<DomainEvent> Events {get;set;}
     }
 
-     [Function("pushBytes")]
+    [Function("pushBytes")]
     public class PushBytesFuncation: FunctionMessage
     {
-        [Parameter("string", "_aggregateId", 1)]
+        [Parameter("string", "aggregateId", 1)]
         public string AggregateId { get; set; }
 
-        [Parameter("uint", "_position", 2)]
+        [Parameter("uint", "startIndex", 2)]
         public int Position {get;set;}
 
         [Parameter("bytes[]", "events", 3)]
@@ -88,28 +88,20 @@ namespace Cila.OmniChain
     {
         private Web3 _web3;
         private ContractHandler _handler;
-        private Event<OmnichainEvent> _eventHandler;
-        private NewFilterInput _filterInput;
         private string _privateKey;
-
+        private readonly Account _account;
         private string _singletonAggregateId;
 
-        private Contract _contract;
 
         public EthChainClient(string rpc, string contract, string privateKey, string abi, string singletonAggregateID)
         {
             
             _privateKey = privateKey;
-            var account = new Nethereum.Web3.Accounts.Account(privateKey);
-            _web3 = new Web3(account, rpc);
-            _web3.Client.OverridingRequestInterceptor = new LoggingInterceptor();
+            _account = new Nethereum.Web3.Accounts.Account(privateKey);
+            Console.WriteLine("The account {0} is used to connect to contract {1}", _account.Address, contract);
+            _web3 = new Web3(_account, rpc, log: new EthLogger());
             _handler = _web3.Eth.GetContractHandler(contract);
-            _contract = _web3.Eth.GetContract(abi, contract);
-            _eventHandler = _handler.GetEvent<OmnichainEvent>();
             _singletonAggregateId = singletonAggregateID;
-            var block = _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync().Result;
-            _filterInput = _eventHandler.CreateFilterInput(new BlockParameter(block.ToUlong() - 1024), BlockParameter.CreateLatest());
-            //
         }
 
         public const int MAX_LIMIT = 1000000;
@@ -118,6 +110,7 @@ namespace Cila.OmniChain
         {
              Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, _singletonAggregateId);
              var handler = _handler.GetFunction<PullBytesFuncation>();
+             
              var request = new PullBytesFuncation{
                 StartIndex = (int)position,
                     Limit = MAX_LIMIT,
@@ -125,9 +118,14 @@ namespace Cila.OmniChain
                 };
                 var result =  await handler.CallAsync<PullEventsDTO>(request);
                 Console.WriteLine("Chain Service Pull executed: {0}", result);
-                //return result.Events;   
                 return result.Events.Select(x=> OmniChainSerializer.DeserializeDomainEvent(x));
         }
+
+        
+        public Task<string> GetRelayPermission()
+    {
+        return _handler.GetFunction<ReadRelay>().CallAsync<string>();
+    }
 
         public async Task<string> PushAsync(ulong position, IEnumerable<DomainEvent> events)
         {
@@ -137,14 +135,11 @@ namespace Cila.OmniChain
                 Position = (int)position,
                 AggregateId = _singletonAggregateId
             };
-            var result = await handler.CallAsync<string>(request);
+
+            //var gasEstimate = await _handler.EstimateGasAsync<PushBytesFuncation>(request);
+            var result = await handler.CallAsync<string>(request,_account.Address, new HexBigInteger(210000), new HexBigInteger(0));
             Console.WriteLine("Chain Service Push} executed: {0}", result);
             return result;
-        }
-
-        public DomainEvent Deserizlize(byte[] data)
-        {
-            return new DomainEvent();
         }
 
         IEnumerable<DomainEvent> IChainClient.Pull(ulong position)
@@ -158,23 +153,15 @@ namespace Cila.OmniChain
         }
     }
 
+    [Function("relay","address")]
+    public class ReadRelay
+    {
+    }
+
     [FunctionOutput]
     public class PullEventsDTO: IFunctionOutputDTO
     {
         [Parameter("bytes[]",order:1)]
         public List<byte[]> Events {get;set;}
-    }
-
-    [Event("OmnichainEvent")]
-    public class OmnichainEvent: IEventDTO
-    {
-        [Parameter("uint64", "_idx", 1, true)]
-        public ulong Version { get; set; }
-
-        [Parameter("uint8", "_type", 2, true)]
-        public byte Type { get; set; }
-
-        [Parameter("bytes", "_payload", 3, true)]
-        public byte[] Payload { get; set; }
     }
 }
