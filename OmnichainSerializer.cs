@@ -2,7 +2,7 @@ using Cila;
 using Example.Protobuf;
 using Google.Protobuf;
 
-namespace OmniChain
+namespace Cila.OmniChain
 {
     public class OmniChainSerializer
     {

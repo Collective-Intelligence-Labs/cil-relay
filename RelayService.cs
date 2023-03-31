@@ -15,9 +15,9 @@ namespace Cila
             var random = new Random();
             foreach (var item in config.Chains)
             {
-                var chain1 = new ExecutionChain();
+                var chain1 = new ExecutionChain(config.SingletonAggregateID);
                 chain1.ID = "Id" + new Random().Next();
-                chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi, config.SingletonAggregateID);
+                chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi);
                 //chain1.ChainService = new ChainClientMock(random.Next(10));
                 var relay = chain1.ChainService.GetRelayPermission().GetAwaiter().GetResult();
                 Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}, Relay: {3}", item.Rpc,item.Contract,item.PrivateKey, relay);

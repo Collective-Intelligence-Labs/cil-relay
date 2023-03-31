@@ -1,5 +1,6 @@
 using Cila.OmniChain;
 
+
 namespace Cila
 {
     public interface IExecutionChain
@@ -9,10 +10,18 @@ namespace Cila
         //List<IAggregateState> Aggregates {get;set;}
     
         void Update();
-        IEnumerable<DomainEvent> GetNewEvents(ulong length);
-        void PushNewEvents(IEnumerable<DomainEvent> newEvents);
+        IEnumerable<ExecutionChainEvent> GetNewEvents(ulong length);
+        void PushNewEvents(IEnumerable<ExecutionChainEvent> newEvents);
 
         ulong Length {get;}
+    }
+
+    public class ExecutionChainEvent
+    {
+        public DomainEvent Event {get;set;}
+        
+        public byte[] Original {get;set;}
+
     }
 
     public class ExecutionChain : IExecutionChain
@@ -21,14 +30,20 @@ namespace Cila
         public ulong Length { get => (ulong)_events.Count; }
         internal IChainClient ChainService { get => chainService; set => chainService = value; }
 
-        private SortedList<ulong,DomainEvent> _events = new SortedList<ulong, DomainEvent>();
+        private SortedList<ulong,ExecutionChainEvent> _events = new SortedList<ulong, ExecutionChainEvent>();
+
+        private SortedList<ulong,byte[]> _originalEvents = new SortedList<ulong, byte[]>();
+
         private IChainClient chainService;
 
-        public ExecutionChain()
+        private string _singletonAggregateID;
+
+        public ExecutionChain(string singletonAggregateID)
         {
+            this._singletonAggregateID = singletonAggregateID;
         }
 
-        public IEnumerable<DomainEvent> GetNewEvents(ulong length)
+        public IEnumerable<ExecutionChainEvent> GetNewEvents(ulong length)
         {
             if (length >= Length)
             {
@@ -42,17 +57,17 @@ namespace Cila
 
         public void Update()
         {
-            var newEvents = ChainService.Pull(Length);
-            AddNewEvents(newEvents);
+            var newEvents = ChainService.Pull(_singletonAggregateID, Length);
+            AddNewEvents(newEvents.Select(x=> new ExecutionChainEvent(){Event = OmniChainSerializer.DeserializeDomainEvent(x), Original = x}));
         }
 
-        public void PushNewEvents(IEnumerable<DomainEvent> newEvents)
+        public void PushNewEvents(IEnumerable<ExecutionChainEvent> newEvents)
         {
-            chainService.Push(Length,newEvents);
+            chainService.Push(_singletonAggregateID,Length,newEvents.Select(x=> x.Original));
             AddNewEvents(newEvents);
         }
 
-        private void AddNewEvents(IEnumerable<DomainEvent> newEvents)
+        private void AddNewEvents(IEnumerable<ExecutionChainEvent> newEvents)
         {
             if (newEvents == null)
             {
@@ -60,11 +75,11 @@ namespace Cila
             }
             foreach (var e in newEvents)
             {
-                if (e.EvntIdx < (ulong)_events.Count)
+                if (e.Event.EvntIdx < (ulong)_events.Count)
                 {
                     continue;
                 }
-                _events.Add(e.EvntIdx, e);
+                _events.Add(e.Event.EvntIdx, e);
             }
         }
     }

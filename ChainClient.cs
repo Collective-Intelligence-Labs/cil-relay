@@ -7,7 +7,6 @@ using System.Numerics;
 using Nethereum.Contracts.ContractHandlers;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Hex.HexTypes;
-using OmniChain;
 using Nethereum.Web3.Accounts;
 
 namespace Cila.OmniChain
@@ -24,10 +23,10 @@ namespace Cila.OmniChain
 
     interface IChainClient
     {
-        void Push(ulong position, IEnumerable<DomainEvent> events);
-        Task<string> PushAsync(ulong position, IEnumerable<DomainEvent> events);
-        IEnumerable<DomainEvent> Pull(ulong position);
-        Task<IEnumerable<DomainEvent>> PullAsync(ulong position);
+        void Push(string aggregateId, ulong position, IEnumerable<byte[]> events);
+        Task<string> PushAsync(string aggregateId, ulong position, IEnumerable<byte[]> events);
+        IEnumerable<byte[]> Pull(string aggregateId, ulong position);
+        Task<IEnumerable<byte[]>> PullAsync(string aggregateId, ulong position);
         Task<string> GetRelayPermission();
     }
 
@@ -90,10 +89,8 @@ namespace Cila.OmniChain
         private ContractHandler _handler;
         private string _privateKey;
         private readonly Account _account;
-        private string _singletonAggregateId;
 
-
-        public EthChainClient(string rpc, string contract, string privateKey, string abi, string singletonAggregateID)
+        public EthChainClient(string rpc, string contract, string privateKey, string abi)
         {
             
             _privateKey = privateKey;
@@ -101,24 +98,23 @@ namespace Cila.OmniChain
             Console.WriteLine("The account {0} is used to connect to contract {1}", _account.Address, contract);
             _web3 = new Web3(_account, rpc, log: new EthLogger());
             _handler = _web3.Eth.GetContractHandler(contract);
-            _singletonAggregateId = singletonAggregateID;
         }
 
         public const int MAX_LIMIT = 1000000;
 
-        public async Task<IEnumerable<DomainEvent>> PullAsync(ulong position)
+        public async Task<IEnumerable<byte[]>> PullAsync(string aggregateId, ulong position)
         {
-             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, _singletonAggregateId);
+             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, aggregateId);
              var handler = _handler.GetFunction<PullBytesFuncation>();
              
              var request = new PullBytesFuncation{
                 StartIndex = (int)position,
                     Limit = MAX_LIMIT,
-                    AggregateId = _singletonAggregateId
+                    AggregateId = aggregateId
                 };
                 var result =  await handler.CallAsync<PullEventsDTO>(request);
                 Console.WriteLine("Chain Service Pull executed: {0}", result);
-                return result.Events.Select(x=> OmniChainSerializer.DeserializeDomainEvent(x));
+                return result.Events;
         }
 
         
@@ -127,29 +123,31 @@ namespace Cila.OmniChain
         return _handler.GetFunction<ReadRelay>().CallAsync<string>();
     }
 
-        public async Task<string> PushAsync(ulong position, IEnumerable<DomainEvent> events)
+        public async Task<string> PushAsync(string aggregateId, ulong position, IEnumerable<byte[]> events)
         {
             var handler = _handler.GetFunction<PushBytesFuncation>();
             var request = new PushBytesFuncation{
-                Events = events.Select(x=> OmniChainSerializer.Serialize(x)).ToList(),
+                Events = events.ToList(),
                 Position = (int)position,
-                AggregateId = _singletonAggregateId
+                AggregateId = aggregateId
             };
-
+            foreach (var ev in request.Events){
+                Console.WriteLine("Event: " + Convert.ToHexString(ev));
+            }
             //var gasEstimate = await _handler.EstimateGasAsync<PushBytesFuncation>(request);
             var result = await handler.CallAsync<string>(request,_account.Address, new HexBigInteger(210000), new HexBigInteger(0));
             Console.WriteLine("Chain Service Push} executed: {0}", result);
             return result;
         }
 
-        IEnumerable<DomainEvent> IChainClient.Pull(ulong position)
+        IEnumerable<byte[]> IChainClient.Pull(string aggregateId, ulong position)
         {
-            return PullAsync(position).GetAwaiter().GetResult();
+            return PullAsync(aggregateId, position).GetAwaiter().GetResult();
         }
 
-        void IChainClient.Push(ulong position, IEnumerable<DomainEvent> events)
+        void IChainClient.Push(string aggregateId, ulong position, IEnumerable<byte[]> events)
         {
-            PushAsync(position,events).GetAwaiter().GetResult();
+            PushAsync(aggregateId, position, events).GetAwaiter().GetResult();
         }
     }
 
