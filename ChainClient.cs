@@ -8,6 +8,7 @@ using Nethereum.Contracts.ContractHandlers;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3.Accounts;
+using System;
 
 namespace Cila.OmniChain
 {
@@ -23,10 +24,11 @@ namespace Cila.OmniChain
 
     interface IChainClient
     {
-        void Push(string aggregateId, ulong position, IEnumerable<byte[]> events);
-        Task<string> PushAsync(string aggregateId, ulong position, IEnumerable<byte[]> events);
-        IEnumerable<byte[]> Pull(string aggregateId, ulong position);
-        Task<IEnumerable<byte[]>> PullAsync(string aggregateId, ulong position);
+        void Push(string aggregateId, UInt32 position, IEnumerable<byte[]> events);
+        Task<string> PushAsync(string aggregateId, UInt32 position, IEnumerable<byte[]> events);
+        IEnumerable<byte[]> Pull(string aggregateId, UInt32 position);
+        IEnumerable<byte[]> PullNewEvents(UInt32 position);
+        Task<IEnumerable<byte[]>> PullAsync(string aggregateId, UInt32 position);
         Task<string> GetRelayPermission();
     }
 
@@ -37,10 +39,10 @@ namespace Cila.OmniChain
         public string AggregateId {get;set;}
 
         [Parameter("uint", "startIndex", 2)]
-        public int StartIndex {get;set;}
+        public UInt32 StartIndex {get;set;}
 
         [Parameter("uint", "limit", 3)]
-        public int Limit {get;set;}
+        public UInt32 Limit {get;set;}
     }
 
     [Function("pullBytes")]
@@ -50,10 +52,10 @@ namespace Cila.OmniChain
         public string AggregateId {get;set;}
 
         [Parameter("uint", "startIndex", 2)]
-        public int StartIndex {get;set;}
+        public UInt32 StartIndex {get;set;}
 
         [Parameter("uint", "limit", 3)]
-        public int Limit {get;set;}
+        public UInt32 Limit {get;set;}
     }
 
     [Function("push")]
@@ -63,7 +65,7 @@ namespace Cila.OmniChain
         public string AggregateId { get; set; }
 
         [Parameter("uint", "_position", 2)]
-        public int Position {get;set;}
+        public UInt32 Position {get;set;}
 
         [Parameter("DomainEvent[]", "events", 3)]
         public List<DomainEvent> Events {get;set;}
@@ -76,39 +78,40 @@ namespace Cila.OmniChain
         public string AggregateId { get; set; }
 
         [Parameter("uint", "startIndex", 2)]
-        public int Position {get;set;}
+        public UInt32 Position {get;set;}
 
-        [Parameter("bytes[]", "events", 3)]
+        [Parameter("bytes[]", "evnts", 3)]
         public List<byte[]> Events {get;set;}
     }
-
 
     public class EthChainClient : IChainClient
     {
         private Web3 _web3;
         private ContractHandler _handler;
         private string _privateKey;
+        private readonly string _singletonAggregateID;
         private readonly Account _account;
 
-        public EthChainClient(string rpc, string contract, string privateKey, string abi)
+        public EthChainClient(string rpc, string contract, string privateKey, string abi, string singletonAggregateID)
         {
             
             _privateKey = privateKey;
+            _singletonAggregateID = singletonAggregateID;
             _account = new Nethereum.Web3.Accounts.Account(privateKey);
             Console.WriteLine("The account {0} is used to connect to contract {1}", _account.Address, contract);
             _web3 = new Web3(_account, rpc, log: new EthLogger());
             _handler = _web3.Eth.GetContractHandler(contract);
         }
 
-        public const int MAX_LIMIT = 1000000;
+        public const UInt32 MAX_LIMIT = 1000000;
 
-        public async Task<IEnumerable<byte[]>> PullAsync(string aggregateId, ulong position)
+        public async Task<IEnumerable<byte[]>> PullAsync(string aggregateId, UInt32 position)
         {
              Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, aggregateId);
              var handler = _handler.GetFunction<PullBytesFuncation>();
              
              var request = new PullBytesFuncation{
-                StartIndex = (int)position,
+                StartIndex = position,
                     Limit = MAX_LIMIT,
                     AggregateId = aggregateId
                 };
@@ -119,35 +122,39 @@ namespace Cila.OmniChain
 
         
         public Task<string> GetRelayPermission()
-    {
-        return _handler.GetFunction<ReadRelay>().CallAsync<string>();
-    }
+        {
+            return _handler.GetFunction<ReadRelay>().CallAsync<string>();
+        }
 
-        public async Task<string> PushAsync(string aggregateId, ulong position, IEnumerable<byte[]> events)
+        public async Task<string> PushAsync(string aggregateId, UInt32 position, IEnumerable<byte[]> events)
         {
             var handler = _handler.GetFunction<PushBytesFuncation>();
             var request = new PushBytesFuncation{
                 Events = events.ToList(),
-                Position = (int)position,
+                Position = position,
                 AggregateId = aggregateId
             };
             foreach (var ev in request.Events){
                 Console.WriteLine("Event: " + Convert.ToHexString(ev));
             }
-            //var gasEstimate = await _handler.EstimateGasAsync<PushBytesFuncation>(request);
             var result = await handler.CallAsync<string>(request,_account.Address, new HexBigInteger(210000), new HexBigInteger(0));
             Console.WriteLine("Chain Service Push} executed: {0}", result);
             return result;
         }
 
-        IEnumerable<byte[]> IChainClient.Pull(string aggregateId, ulong position)
+        public IEnumerable<byte[]> Pull(string aggregateId, UInt32 position)
         {
             return PullAsync(aggregateId, position).GetAwaiter().GetResult();
         }
 
-        void IChainClient.Push(string aggregateId, ulong position, IEnumerable<byte[]> events)
+        public void Push(string aggregateId, UInt32 position, IEnumerable<byte[]> events)
         {
             PushAsync(aggregateId, position, events).GetAwaiter().GetResult();
+        }
+
+        public IEnumerable<byte[]> PullNewEvents(uint position)
+        {
+            return this.Pull(_singletonAggregateID, position);
         }
     }
 

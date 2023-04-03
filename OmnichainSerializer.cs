@@ -1,5 +1,4 @@
 using Cila;
-using Example.Protobuf;
 using Google.Protobuf;
 
 namespace Cila.OmniChain
@@ -30,7 +29,7 @@ namespace Cila.OmniChain
         public static IMessage DeserializeWithMessageType(byte[] data)
         {
             ValidateData(data);
-            OmniChainMessageType messageType = (OmniChainMessageType)data[0];
+            DomainEventType messageType = (DomainEventType)data[0];
             byte[] messageBytes = new byte[data.Length - 1];
             Buffer.BlockCopy(data, 1, messageBytes, 0, messageBytes.Length);
 
@@ -38,11 +37,11 @@ namespace Cila.OmniChain
 
             switch (messageType)
             {
-                case OmniChainMessageType.ItemIssued:
-                    message = new ItemMinted();
+                case DomainEventType.NftMinted:
+                    message = new NFTMintedPayload();
                     break;
-                case OmniChainMessageType.ItemTransfered:
-                    message = new ItemTransfered();
+                case DomainEventType.NftTransfered:
+                    message = new NFTTransferedPayload();
                     break;
                 default:
                     throw new ArgumentException("Invalid message type");

@@ -1,85 +1,80 @@
 using Cila.OmniChain;
-
+using MongoDB.Bson;
+using Nethereum.Util;
+using Nethereum.Util.HashProviders;
 
 namespace Cila
 {
     public interface IExecutionChain
     {
         string ID {get;}
-
-        //List<IAggregateState> Aggregates {get;set;}
-    
         void Update();
-        IEnumerable<ExecutionChainEvent> GetNewEvents(ulong length);
-        void PushNewEvents(IEnumerable<ExecutionChainEvent> newEvents);
-
-        ulong Length {get;}
     }
 
     public class ExecutionChainEvent
     {
-        public DomainEvent Event {get;set;}
+        public string Id {get;set;}
+
+        public string OriginChainId {get; set;}
+
+        public string AggregateId {get;set;}
         
-        public byte[] Original {get;set;}
+        public byte[] Serialized {get;set;}
+
+        public byte[] Hash {get;set;}
+
+        public int BlockNumber {get;set;}
+
+        public ulong Version {get;set;}
 
     }
 
     public class ExecutionChain : IExecutionChain
     {
         public string ID { get; set; }
-        public ulong Length { get => (ulong)_events.Count; }
         internal IChainClient ChainService { get => chainService; set => chainService = value; }
 
-        private SortedList<ulong,ExecutionChainEvent> _events = new SortedList<ulong, ExecutionChainEvent>();
-
-        private SortedList<ulong,byte[]> _originalEvents = new SortedList<ulong, byte[]>();
-
         private IChainClient chainService;
-
         private string _singletonAggregateID;
+        private readonly EventStore _eventStore;
+        private readonly EventsDispatcher _eventsDispatcher;
+        private uint _lastBlock = 0;
 
-        public ExecutionChain(string singletonAggregateID)
+        public ExecutionChain(string singletonAggregateID, EventStore eventStore, EventsDispatcher eventsDispatcher)
         {
             this._singletonAggregateID = singletonAggregateID;
-        }
-
-        public IEnumerable<ExecutionChainEvent> GetNewEvents(ulong length)
-        {
-            if (length >= Length)
-            {
-                yield break;
-            }
-            for (ulong i = length ; i < Length; i++)
-            {
-                yield return _events[i];
-            } 
+            _eventStore = eventStore;
+            _eventsDispatcher = eventsDispatcher;
         }
 
         public void Update()
         {
-            var newEvents = ChainService.Pull(_singletonAggregateID, Length);
-            AddNewEvents(newEvents.Select(x=> new ExecutionChainEvent(){Event = OmniChainSerializer.DeserializeDomainEvent(x), Original = x}));
-        }
+            var hashProvider = new Sha3KeccackHashProvider();
+            var newEvents = ChainService.PullNewEvents(_lastBlock);
+            var aggregates = newEvents.Select(x => 
+            { 
+                var domainEvent = OmniChainSerializer.DeserializeDomainEvent(x);
+                return new ExecutionChainEvent(){
+                    Id = ObjectId.GenerateNewId().ToString(),
+                Serialized = x,
+                AggregateId = _singletonAggregateID,
+                OriginChainId = ID,
+                Hash = hashProvider.ComputeHash(domainEvent.EvntPayload.ToByteArray()), //replace with retrieving it from the chain and validating
+                Version = domainEvent.EvntIdx
+                };
+            }).GroupBy(x=> x.AggregateId);
 
-        public void PushNewEvents(IEnumerable<ExecutionChainEvent> newEvents)
-        {
-            chainService.Push(_singletonAggregateID,Length,newEvents.Select(x=> x.Original));
-            AddNewEvents(newEvents);
-        }
-
-        private void AddNewEvents(IEnumerable<ExecutionChainEvent> newEvents)
-        {
-            if (newEvents == null)
-            {
-                return;
-            }
-            foreach (var e in newEvents)
-            {
-                if (e.Event.EvntIdx < (ulong)_events.Count)
+            foreach (var aggregate in aggregates){
+                var newVersion = aggregate.Max(x=> x.Version);
+                var startIndex = aggregate.Min(x=> x.Version);
+                var currentVersion = _eventStore.GetLatestVersion(aggregate.Key);
+                if (currentVersion == null || currentVersion < newVersion)
                 {
-                    continue;
+                    // selects new events if current Version null then all events
+                    var events = currentVersion == null ? aggregate : aggregate.Where(x=> x.Version > currentVersion);
+                    _eventsDispatcher.Dispatch(ID, aggregate.Key , events, (UInt32)startIndex );
+                    _eventStore.AppendEvents(aggregate.Key, events);
                 }
-                _events.Add(e.Event.EvntIdx, e);
             }
         }
     }

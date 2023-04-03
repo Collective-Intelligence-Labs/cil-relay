@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+enum InfrastructureEventType {
+  NotSpecifiedEvent = 0;
+  ApplicationOperationInitiatedEvent = 1;
+  RelayEventsTransmiitedEvent = 2;
+  EventsAggregatedEvent = 3;
+  TransactionExecutedEvent = 4;
+  TransactionRoutedEvent = 5;
+}
+
+message InfrastructureEvent {
+    string id = 1;
+    InfrastructureEventType evnt_type = 2;
+    string operation_id = 3;
+    string router_id = 4;
+    string portal_id = 5;
+    string relay_id = 6;
+    string core_id = 7;
+    string aggregator_id = 8;
+    google.protobuf.Timestamp timestamp = 9;
+    repeated DomainCommandDto commands = 10;
+    repeated DomainEventDto events = 11;
+}
+
+message DomainEventDto {
+    string id = 1;
+    string aggregate_id = 2;
+    string source_id = 3;
+    string command_id = 4;
+    bool conflict = 5; 
+    google.protobuf.Timestamp timespan = 6;
+}
+
+message DomainCommandDto {
+    string id = 1;
+    string aggregate_id = 2;
+    string sender = 3;
+    google.protobuf.Timestamp timespan = 4;
+}
