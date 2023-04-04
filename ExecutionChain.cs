@@ -1,5 +1,7 @@
 using Cila.OmniChain;
+using Google.Protobuf.WellKnownTypes;
 using MongoDB.Bson;
+using Nethereum.Contracts;
 using Nethereum.Util;
 using Nethereum.Util.HashProviders;
 
@@ -40,11 +42,14 @@ namespace Cila
         private readonly EventsDispatcher _eventsDispatcher;
         private uint _lastBlock = 0;
 
-        public ExecutionChain(string singletonAggregateID, EventStore eventStore, EventsDispatcher eventsDispatcher)
+        private readonly KafkaProducer _producer;
+
+        public ExecutionChain(string singletonAggregateID, EventStore eventStore, EventsDispatcher eventsDispatcher, KafkaProducer producer)
         {
             this._singletonAggregateID = singletonAggregateID;
             _eventStore = eventStore;
             _eventsDispatcher = eventsDispatcher;
+            _producer = producer;
         }
 
         public void Update()
@@ -72,10 +77,35 @@ namespace Cila
                 {
                     // selects new events if current Version null then all events
                     var events = currentVersion == null ? aggregate : aggregate.Where(x=> x.Version > currentVersion);
+                    try {
                     _eventsDispatcher.Dispatch(ID, aggregate.Key , events, (UInt32)startIndex );
                     _eventStore.AppendEvents(aggregate.Key, events);
+                    ProduceInfrastructureEvent(events, aggregate.Key, null);
+                    } catch (SmartContractCustomErrorRevertException e)
+                    {
+                        ProduceInfrastructureEvent(events, aggregate.Key, e.Message);
+                    }
                 }
             }
+        }
+
+        private async Task ProduceInfrastructureEvent(IEnumerable<ExecutionChainEvent> events, string aggregateId, string errorMessage)
+        {
+             var infEvent = new InfrastructureEvent{
+                        Id = Guid.NewGuid().ToString(),
+                        EvntType = InfrastructureEventType.RelayEventsTransmiitedEvent,
+                        AggregatorId = aggregateId,
+                        OperationId = "32ae8f52f407e48a89d",
+                        CoreId = errorMessage //TODO: replace with normal error handling
+                    };
+                    foreach (var e in events)
+                    {
+                        infEvent.Events.Add( new DomainEventDto{
+                                Id = e.Version.ToString(),
+                                Timespan = Timestamp.FromDateTime(DateTime.UtcNow),
+                        });
+                    }
+                    await _producer.ProduceAsync("infr", infEvent);
         }
     }
 }

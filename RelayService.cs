@@ -15,6 +15,7 @@ namespace Cila
             var random = new Random();
             var db = new Database.MongoDatabase(config);
             var subsService = new SubscriptionsService(db);
+            var kafkraProducer = new KafkaProducer(Program.ProducerConfig());
             var subs = subsService.GetAllFor(config.SingletonAggregateID).ToList();
             foreach (var item in config.Chains)
             {
@@ -22,7 +23,7 @@ namespace Cila
                 {
                     subsService.Create(config.SingletonAggregateID, item.ChainId);
                 }
-                var chain1 = new ExecutionChain(config.SingletonAggregateID, new EventStore(db), new EventsDispatcher(subsService, config));
+                var chain1 = new ExecutionChain(config.SingletonAggregateID, new EventStore(db), new EventsDispatcher(subsService, config), kafkraProducer);
                 chain1.ID = item.ChainId;
                 chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi,config.SingletonAggregateID);
                 //chain1.ChainService = new ChainClientMock(random.Next(10));
