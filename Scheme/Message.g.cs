@@ -23,28 +23,29 @@ public static partial class MessageReflection {
     byte[] descriptorData = global::System.Convert.FromBase64String(
         string.Concat(
           "Cg1tZXNzYWdlLnByb3RvGh9nb29nbGUvcHJvdG9idWYvdGltZXN0YW1wLnBy",
-          "b3RvIrkCChNJbmZyYXN0cnVjdHVyZUV2ZW50EgoKAmlkGAEgASgJEisKCWV2",
+          "b3RvIuICChNJbmZyYXN0cnVjdHVyZUV2ZW50EgoKAmlkGAEgASgJEisKCWV2",
           "bnRfdHlwZRgCIAEoDjIYLkluZnJhc3RydWN0dXJlRXZlbnRUeXBlEhQKDG9w",
-          "ZXJhdGlvbl9pZBgDIAEoCRIRCglyb3V0ZXJfaWQYBCABKAkSEQoJcG9ydGFs",
-          "X2lkGAUgASgJEhAKCHJlbGF5X2lkGAYgASgJEg8KB2NvcmVfaWQYByABKAkS",
-          "FQoNYWdncmVnYXRvcl9pZBgIIAEoCRItCgl0aW1lc3RhbXAYCSABKAsyGi5n",
-          "b29nbGUucHJvdG9idWYuVGltZXN0YW1wEiMKCGNvbW1hbmRzGAogAygLMhEu",
-          "RG9tYWluQ29tbWFuZER0bxIfCgZldmVudHMYCyADKAsyDy5Eb21haW5FdmVu",
-          "dER0byKZAQoORG9tYWluRXZlbnREdG8SCgoCaWQYASABKAkSFAoMYWdncmVn",
-          "YXRlX2lkGAIgASgJEhEKCXNvdXJjZV9pZBgDIAEoCRISCgpjb21tYW5kX2lk",
-          "GAQgASgJEhAKCGNvbmZsaWN0GAUgASgIEiwKCHRpbWVzcGFuGAYgASgLMhou",
-          "Z29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJyChBEb21haW5Db21tYW5kRHRv",
-          "EgoKAmlkGAEgASgJEhQKDGFnZ3JlZ2F0ZV9pZBgCIAEoCRIOCgZzZW5kZXIY",
-          "AyABKAkSLAoIdGltZXNwYW4YBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGlt",
-          "ZXN0YW1wKs4BChdJbmZyYXN0cnVjdHVyZUV2ZW50VHlwZRIVChFOb3RTcGVj",
-          "aWZpZWRFdmVudBAAEiYKIkFwcGxpY2F0aW9uT3BlcmF0aW9uSW5pdGlhdGVk",
-          "RXZlbnQQARIfChtSZWxheUV2ZW50c1RyYW5zbWlpdGVkRXZlbnQQAhIZChVF",
-          "dmVudHNBZ2dyZWdhdGVkRXZlbnQQAxIcChhUcmFuc2FjdGlvbkV4ZWN1dGVk",
-          "RXZlbnQQBBIaChZUcmFuc2FjdGlvblJvdXRlZEV2ZW50EAViBnByb3RvMw=="));
+          "ZXJhdGlvbl9pZBgDIAEoCRIRCglyb3V0ZXJfaWQYBCABKAkSEAoIY2hhaW5f",
+          "aWQYBSABKAkSEAoIcmVsYXlfaWQYBiABKAkSDwoHY29yZV9pZBgHIAEoCRIV",
+          "Cg1hZ2dyZWdhdG9yX2lkGAggASgJEi0KCXRpbWVzdGFtcBgJIAEoCzIaLmdv",
+          "b2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASIwoIY29tbWFuZHMYCiADKAsyES5E",
+          "b21haW5Db21tYW5kRHRvEh8KBmV2ZW50cxgLIAMoCzIPLkRvbWFpbkV2ZW50",
+          "RHRvEhUKDWVycm9yX21lc3NhZ2UYDCABKAkSEQoJcG9ydGFsX2lkGA0gASgJ",
+          "IpkBCg5Eb21haW5FdmVudER0bxIKCgJpZBgBIAEoCRIUCgxhZ2dyZWdhdGVf",
+          "aWQYAiABKAkSEQoJc291cmNlX2lkGAMgASgJEhIKCmNvbW1hbmRfaWQYBCAB",
+          "KAkSEAoIY29uZmxpY3QYBSABKAgSLAoIdGltZXNwYW4YBiABKAsyGi5nb29n",
+          "bGUucHJvdG9idWYuVGltZXN0YW1wInIKEERvbWFpbkNvbW1hbmREdG8SCgoC",
+          "aWQYASABKAkSFAoMYWdncmVnYXRlX2lkGAIgASgJEg4KBnNlbmRlchgDIAEo",
+          "CRIsCgh0aW1lc3BhbhgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3Rh",
+          "bXAqzgEKF0luZnJhc3RydWN0dXJlRXZlbnRUeXBlEhUKEU5vdFNwZWNpZmll",
+          "ZEV2ZW50EAASJgoiQXBwbGljYXRpb25PcGVyYXRpb25Jbml0aWF0ZWRFdmVu",
+          "dBABEh8KG1JlbGF5RXZlbnRzVHJhbnNtaWl0ZWRFdmVudBACEhkKFUV2ZW50",
+          "c0FnZ3JlZ2F0ZWRFdmVudBADEhwKGFRyYW5zYWN0aW9uRXhlY3V0ZWRFdmVu",
+          "dBAEEhoKFlRyYW5zYWN0aW9uUm91dGVkRXZlbnQQBWIGcHJvdG8z"));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
         new pbr::GeneratedClrTypeInfo(new[] {typeof(global::InfrastructureEventType), }, null, new pbr::GeneratedClrTypeInfo[] {
-          new pbr::GeneratedClrTypeInfo(typeof(global::InfrastructureEvent), global::InfrastructureEvent.Parser, new[]{ "Id", "EvntType", "OperationId", "RouterId", "PortalId", "RelayId", "CoreId", "AggregatorId", "Timestamp", "Commands", "Events" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::InfrastructureEvent), global::InfrastructureEvent.Parser, new[]{ "Id", "EvntType", "OperationId", "RouterId", "ChainId", "RelayId", "CoreId", "AggregatorId", "Timestamp", "Commands", "Events", "ErrorMessage", "PortalId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::DomainEventDto), global::DomainEventDto.Parser, new[]{ "Id", "AggregateId", "SourceId", "CommandId", "Conflict", "Timespan" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::DomainCommandDto), global::DomainCommandDto.Parser, new[]{ "Id", "AggregateId", "Sender", "Timespan" }, null, null, null, null)
         }));
@@ -103,13 +104,15 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     evntType_ = other.evntType_;
     operationId_ = other.operationId_;
     routerId_ = other.routerId_;
-    portalId_ = other.portalId_;
+    chainId_ = other.chainId_;
     relayId_ = other.relayId_;
     coreId_ = other.coreId_;
     aggregatorId_ = other.aggregatorId_;
     timestamp_ = other.timestamp_ != null ? other.timestamp_.Clone() : null;
     commands_ = other.commands_.Clone();
     events_ = other.events_.Clone();
+    errorMessage_ = other.errorMessage_;
+    portalId_ = other.portalId_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -167,15 +170,15 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     }
   }
 
-  /// <summary>Field number for the "portal_id" field.</summary>
-  public const int PortalIdFieldNumber = 5;
-  private string portalId_ = "";
+  /// <summary>Field number for the "chain_id" field.</summary>
+  public const int ChainIdFieldNumber = 5;
+  private string chainId_ = "";
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-  public string PortalId {
-    get { return portalId_; }
+  public string ChainId {
+    get { return chainId_; }
     set {
-      portalId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      chainId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
     }
   }
 
@@ -249,6 +252,30 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     get { return events_; }
   }
 
+  /// <summary>Field number for the "error_message" field.</summary>
+  public const int ErrorMessageFieldNumber = 12;
+  private string errorMessage_ = "";
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public string ErrorMessage {
+    get { return errorMessage_; }
+    set {
+      errorMessage_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    }
+  }
+
+  /// <summary>Field number for the "portal_id" field.</summary>
+  public const int PortalIdFieldNumber = 13;
+  private string portalId_ = "";
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public string PortalId {
+    get { return portalId_; }
+    set {
+      portalId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override bool Equals(object other) {
@@ -268,13 +295,15 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     if (EvntType != other.EvntType) return false;
     if (OperationId != other.OperationId) return false;
     if (RouterId != other.RouterId) return false;
-    if (PortalId != other.PortalId) return false;
+    if (ChainId != other.ChainId) return false;
     if (RelayId != other.RelayId) return false;
     if (CoreId != other.CoreId) return false;
     if (AggregatorId != other.AggregatorId) return false;
     if (!object.Equals(Timestamp, other.Timestamp)) return false;
     if(!commands_.Equals(other.commands_)) return false;
     if(!events_.Equals(other.events_)) return false;
+    if (ErrorMessage != other.ErrorMessage) return false;
+    if (PortalId != other.PortalId) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -286,13 +315,15 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     if (EvntType != global::InfrastructureEventType.NotSpecifiedEvent) hash ^= EvntType.GetHashCode();
     if (OperationId.Length != 0) hash ^= OperationId.GetHashCode();
     if (RouterId.Length != 0) hash ^= RouterId.GetHashCode();
-    if (PortalId.Length != 0) hash ^= PortalId.GetHashCode();
+    if (ChainId.Length != 0) hash ^= ChainId.GetHashCode();
     if (RelayId.Length != 0) hash ^= RelayId.GetHashCode();
     if (CoreId.Length != 0) hash ^= CoreId.GetHashCode();
     if (AggregatorId.Length != 0) hash ^= AggregatorId.GetHashCode();
     if (timestamp_ != null) hash ^= Timestamp.GetHashCode();
     hash ^= commands_.GetHashCode();
     hash ^= events_.GetHashCode();
+    if (ErrorMessage.Length != 0) hash ^= ErrorMessage.GetHashCode();
+    if (PortalId.Length != 0) hash ^= PortalId.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -327,9 +358,9 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
       output.WriteRawTag(34);
       output.WriteString(RouterId);
     }
-    if (PortalId.Length != 0) {
+    if (ChainId.Length != 0) {
       output.WriteRawTag(42);
-      output.WriteString(PortalId);
+      output.WriteString(ChainId);
     }
     if (RelayId.Length != 0) {
       output.WriteRawTag(50);
@@ -349,6 +380,14 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     }
     commands_.WriteTo(output, _repeated_commands_codec);
     events_.WriteTo(output, _repeated_events_codec);
+    if (ErrorMessage.Length != 0) {
+      output.WriteRawTag(98);
+      output.WriteString(ErrorMessage);
+    }
+    if (PortalId.Length != 0) {
+      output.WriteRawTag(106);
+      output.WriteString(PortalId);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -375,9 +414,9 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
       output.WriteRawTag(34);
       output.WriteString(RouterId);
     }
-    if (PortalId.Length != 0) {
+    if (ChainId.Length != 0) {
       output.WriteRawTag(42);
-      output.WriteString(PortalId);
+      output.WriteString(ChainId);
     }
     if (RelayId.Length != 0) {
       output.WriteRawTag(50);
@@ -397,6 +436,14 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     }
     commands_.WriteTo(ref output, _repeated_commands_codec);
     events_.WriteTo(ref output, _repeated_events_codec);
+    if (ErrorMessage.Length != 0) {
+      output.WriteRawTag(98);
+      output.WriteString(ErrorMessage);
+    }
+    if (PortalId.Length != 0) {
+      output.WriteRawTag(106);
+      output.WriteString(PortalId);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -419,8 +466,8 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     if (RouterId.Length != 0) {
       size += 1 + pb::CodedOutputStream.ComputeStringSize(RouterId);
     }
-    if (PortalId.Length != 0) {
-      size += 1 + pb::CodedOutputStream.ComputeStringSize(PortalId);
+    if (ChainId.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(ChainId);
     }
     if (RelayId.Length != 0) {
       size += 1 + pb::CodedOutputStream.ComputeStringSize(RelayId);
@@ -436,6 +483,12 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     }
     size += commands_.CalculateSize(_repeated_commands_codec);
     size += events_.CalculateSize(_repeated_events_codec);
+    if (ErrorMessage.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(ErrorMessage);
+    }
+    if (PortalId.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(PortalId);
+    }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
     }
@@ -460,8 +513,8 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     if (other.RouterId.Length != 0) {
       RouterId = other.RouterId;
     }
-    if (other.PortalId.Length != 0) {
-      PortalId = other.PortalId;
+    if (other.ChainId.Length != 0) {
+      ChainId = other.ChainId;
     }
     if (other.RelayId.Length != 0) {
       RelayId = other.RelayId;
@@ -480,6 +533,12 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
     }
     commands_.Add(other.commands_);
     events_.Add(other.events_);
+    if (other.ErrorMessage.Length != 0) {
+      ErrorMessage = other.ErrorMessage;
+    }
+    if (other.PortalId.Length != 0) {
+      PortalId = other.PortalId;
+    }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
 
@@ -512,7 +571,7 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
           break;
         }
         case 42: {
-          PortalId = input.ReadString();
+          ChainId = input.ReadString();
           break;
         }
         case 50: {
@@ -540,6 +599,14 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
         }
         case 90: {
           events_.AddEntriesFrom(input, _repeated_events_codec);
+          break;
+        }
+        case 98: {
+          ErrorMessage = input.ReadString();
+          break;
+        }
+        case 106: {
+          PortalId = input.ReadString();
           break;
         }
       }
@@ -574,7 +641,7 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
           break;
         }
         case 42: {
-          PortalId = input.ReadString();
+          ChainId = input.ReadString();
           break;
         }
         case 50: {
@@ -602,6 +669,14 @@ public sealed partial class InfrastructureEvent : pb::IMessage<InfrastructureEve
         }
         case 90: {
           events_.AddEntriesFrom(ref input, _repeated_events_codec);
+          break;
+        }
+        case 98: {
+          ErrorMessage = input.ReadString();
+          break;
+        }
+        case 106: {
+          PortalId = input.ReadString();
           break;
         }
       }

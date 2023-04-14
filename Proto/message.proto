@@ -16,13 +16,15 @@ message InfrastructureEvent {
     InfrastructureEventType evnt_type = 2;
     string operation_id = 3;
     string router_id = 4;
-    string portal_id = 5;
+    string chain_id = 5;
     string relay_id = 6;
     string core_id = 7;
     string aggregator_id = 8;
     google.protobuf.Timestamp timestamp = 9;
     repeated DomainCommandDto commands = 10;
     repeated DomainEventDto events = 11;
+    string error_message =12;
+    string portal_id = 13;
 }
 
 message DomainEventDto {

@@ -35,7 +35,6 @@ namespace Cila
     {
         public string ID { get; set; }
         internal IChainClient ChainService { get => chainService; set => chainService = value; }
-
         private IChainClient chainService;
         private string _singletonAggregateID;
         private readonly EventStore _eventStore;
@@ -73,6 +72,7 @@ namespace Cila
                 var newVersion = aggregate.Max(x=> x.Version);
                 var startIndex = aggregate.Min(x=> x.Version);
                 var currentVersion = _eventStore.GetLatestVersion(aggregate.Key);
+                //TODO: Add conflic resolution logic here: we need to add getting also a hash of latest version merkle tree of all events and then checking if there are a different with the once we receive from the chain because we might push additional events that different by hash not by version
                 if (currentVersion == null || currentVersion < newVersion)
                 {
                     // selects new events if current Version null then all events
@@ -91,12 +91,14 @@ namespace Cila
 
         private async Task ProduceInfrastructureEvent(IEnumerable<ExecutionChainEvent> events, string aggregateId, string errorMessage)
         {
+            var operationId = aggregateId + events.First().Version;
              var infEvent = new InfrastructureEvent{
                         Id = Guid.NewGuid().ToString(),
                         EvntType = InfrastructureEventType.RelayEventsTransmiitedEvent,
                         AggregatorId = aggregateId,
-                        OperationId = "32ae8f52f407e48a89d",
-                        CoreId = errorMessage //TODO: replace with normal error handling
+                        OperationId = operationId ,
+                        RelayId = "#1",
+                        ErrorMessage = errorMessage //TODO: replace with normal error handling
                     };
                     foreach (var e in events)
                     {
