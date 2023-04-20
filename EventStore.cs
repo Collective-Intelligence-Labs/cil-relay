@@ -1,5 +1,6 @@
 using Cila;
 using Cila.Database;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 public class EventStore
@@ -33,6 +34,12 @@ public class EventStore
         var latestVersion = _events.Find(filter).Sort(sort).FirstOrDefault();
 
         return latestVersion?.Version ?? null;
+    }
+
+    public async Task<IEnumerable<string>> GetAggregateIds()
+    {
+        var filter = new BsonDocument();
+        return _events.Distinct<string>("AggregateId", filter).ToList();
     }
 
     public async Task AppendEvents(string aggregateId, IEnumerable<ExecutionChainEvent> events)

@@ -55,6 +55,8 @@ namespace Cila
         {
             var hashProvider = new Sha3KeccackHashProvider();
             var newEvents = ChainService.PullNewEvents(_lastBlock);
+            newEvents = newEvents ?? new List<byte[]>();
+
             var aggregates = newEvents.Select(x => 
             { 
                 var domainEvent = OmniChainSerializer.DeserializeDomainEvent(x);
@@ -66,17 +68,19 @@ namespace Cila
                 Hash = hashProvider.ComputeHash(domainEvent.EvntPayload.ToByteArray()), //replace with retrieving it from the chain and validating
                 Version = domainEvent.EvntIdx
                 };
-            }).GroupBy(x=> x.AggregateId);
+            }).OrderBy(x => x.Version).GroupBy(x=> x.AggregateId);
 
-            foreach (var aggregate in aggregates){
+            foreach (var aggregate in aggregates)
+            {
                 var newVersion = aggregate.Max(x=> x.Version);
-                var startIndex = aggregate.Min(x=> x.Version);
                 var currentVersion = _eventStore.GetLatestVersion(aggregate.Key);
                 //TODO: Add conflic resolution logic here: we need to add getting also a hash of latest version merkle tree of all events and then checking if there are a different with the once we receive from the chain because we might push additional events that different by hash not by version
                 if (currentVersion == null || currentVersion < newVersion)
                 {
                     // selects new events if current Version null then all events
                     var events = currentVersion == null ? aggregate : aggregate.Where(x=> x.Version > currentVersion);
+                    var startIndex = events.Min(x => x.Version);
+
                     try {
                     _eventsDispatcher.Dispatch(ID, aggregate.Key , events, (UInt32)startIndex );
                     _eventStore.AppendEvents(aggregate.Key, events);
@@ -84,6 +88,10 @@ namespace Cila
                     } catch (SmartContractCustomErrorRevertException e)
                     {
                         ProduceInfrastructureEvent(events, aggregate.Key, e.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
                     }
                 }
             }

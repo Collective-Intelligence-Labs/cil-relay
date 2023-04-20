@@ -15,7 +15,7 @@ internal class Program
         _appSettings = configuration.GetSection("RelaySettings").Get<OmniChainRelaySettings>();
         Console.WriteLine("Number of chains in settiings: {0}", _appSettings.Chains.Count);
         var relayService = new RelayService(_appSettings);
-        var timer = new Timer(ExecuteTask, relayService, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        var timer = new Timer(ExecuteTask, relayService, TimeSpan.Zero, TimeSpan.FromSeconds(30));
         // Wait indefinitely
         Console.WriteLine("Press Ctrl+C to exit.");
         var exitEvent = new ManualResetEvent(false);

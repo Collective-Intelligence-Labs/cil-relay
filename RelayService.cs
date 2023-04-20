@@ -19,7 +19,7 @@ namespace Cila
             var subs = subsService.GetAllFor(config.SingletonAggregateID).ToList();
             foreach (var item in config.Chains)
             {
-                if (subs.Count == 0)
+                if (subs.Count(x => x.ChainId == item.ChainId) == 0)
                 {
                     subsService.Create(config.SingletonAggregateID, item.ChainId);
                 }
