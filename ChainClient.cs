@@ -152,6 +152,7 @@ namespace Cila.OmniChain
 
             var gasEstimate = await txHandler.EstimateGasAsync(_handler.ContractAddress, request);
             request.Gas = new BigInteger(2 * gasEstimate.ToUlong());
+            request.GasPrice = _web3.Eth.GasPrice.SendRequestAsync().GetAwaiter().GetResult();
             var result = await txHandler.SendRequestAsync(_handler.ContractAddress, request);
 
             Console.WriteLine("Chain Service Push executed: {0}", result);

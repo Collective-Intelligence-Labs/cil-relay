@@ -43,6 +43,14 @@
         "PrivateKey": "a813851a121a15c924f24d4a2a316f6a0635714c05f939c5e760c22b45647d13",
         "Contract": "0xd1Be6e00EE9f4195eabAbbBBBD28a173D6064C3c", // "0x5fBfA5f639060EACBb906F3Dc3b00e1c63F4D286",
         "AbiFile": "contract.json"
+      },
+      {
+        "ChainId": "3",
+        "ChaintType": "Aurora Testnet",
+        "Rpc": "https://testnet.aurora.dev",
+        "PrivateKey": "a813851a121a15c924f24d4a2a316f6a0635714c05f939c5e760c22b45647d13",
+        "Contract": "0x9A5D2Bb4EDFC10d1b4fb0Fd8677EBa06ba9E0A40", // "0x5fBfA5f639060EACBb906F3Dc3b00e1c63F4D286",
+        "AbiFile": "contract.json"
       }
     ]
   }
