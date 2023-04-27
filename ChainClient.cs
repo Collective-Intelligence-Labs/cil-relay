@@ -28,6 +28,8 @@ namespace Cila.OmniChain
 
     interface IChainClient
     {
+        string GetChainId();
+
         void Push(string aggregateId, UInt32 position, IEnumerable<byte[]> events);
         Task<string> PushAsync(string aggregateId, UInt32 position, IEnumerable<byte[]> events);
         IEnumerable<byte[]> Pull(string aggregateId, UInt32 position);
@@ -109,6 +111,8 @@ namespace Cila.OmniChain
 
         public const UInt32 MAX_LIMIT = 1000000;
 
+        public string GetChainId() => _web3.Eth.ChainId.SendRequestAsync().GetAwaiter().GetResult().ToString();
+
         public async Task<IEnumerable<byte[]>> PullAsync(string aggregateId, UInt32 position)
         {
             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, aggregateId);
@@ -151,8 +155,11 @@ namespace Cila.OmniChain
             }
 
             var gasEstimate = await txHandler.EstimateGasAsync(_handler.ContractAddress, request);
-            request.Gas = new BigInteger(2 * gasEstimate.ToUlong());
-            request.GasPrice = _web3.Eth.GasPrice.SendRequestAsync().GetAwaiter().GetResult();
+            request.Gas = new BigInteger(2) * gasEstimate;
+
+            var gasPrice = await _web3.Eth.GasPrice.SendRequestAsync();
+            request.GasPrice = new BigInteger(2) * gasPrice;
+
             var result = await txHandler.SendRequestAsync(_handler.ContractAddress, request);
 
             Console.WriteLine("Chain Service Push executed: {0}", result);

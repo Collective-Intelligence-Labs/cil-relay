@@ -17,29 +17,28 @@ namespace Cila
             var subsService = new SubscriptionsService(db);
             var kafkraProducer = new KafkaProducer(Program.ProducerConfig());
             var subs = subsService.GetAllFor(config.SingletonAggregateID).ToList();
-            foreach (var item in config.Chains)
+            foreach (var chain in config.Chains)
             {
-                if (subs.Count(x => x.ChainId == item.ChainId) == 0)
+                if (subs.Count(x => x.ChainId == chain.ChainId) == 0)
                 {
-                    subsService.Create(config.SingletonAggregateID, item.ChainId);
+                    subsService.Create(config.SingletonAggregateID, chain.ChainId);
                 }
-                var chain1 = new ExecutionChain(config.SingletonAggregateID, new EventStore(db), new EventsDispatcher(subsService, config), kafkraProducer);
-                chain1.ID = item.ChainId;
-                chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi,config.SingletonAggregateID);
-                //chain1.ChainService = new ChainClientMock(random.Next(10));
-                var relay = chain1.ChainService.GetRelayPermission().GetAwaiter().GetResult();
-                Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}, Relay: {3}", item.Rpc,item.Contract,item.PrivateKey, relay);
-                _chains.Add(chain1);
+                var execChain = new ExecutionChain(config.SingletonAggregateID, new EventStore(db), new EventsDispatcher(subsService, config, kafkraProducer), kafkraProducer);
+                execChain.ID = chain.ChainId;
+                execChain.ChainService = new EthChainClient(chain.Rpc, chain.Contract, chain.PrivateKey, chain.Abi, config.SingletonAggregateID);
+                var relay = execChain.ChainService.GetRelayPermission().GetAwaiter().GetResult();
+                Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}, Relay: {3}", chain.Rpc, chain.Contract, chain.PrivateKey, relay);
+                _chains.Add(execChain);
             }
         }
 
         public void SyncAllChains()
         {
             //fetch the latest state for each chains
-            Console.WriteLine("Current active chains: {0}", _chains.Count);
+            Console.WriteLine("Active chains: {0}", _chains.Count);
             foreach (var chain in _chains)
             {
-                chain.Update();
+                chain.Update(Id);
             }
         }
     }
