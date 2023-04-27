@@ -6,6 +6,10 @@ namespace Cila
 
         public List<ExecutionChainSettings> Chains {get;set;}
 
+        public string MongoDBConnectionString {get;set;}
+
+        public string SingletonAggregateID { get; set; }
+
         public OmniChainRelaySettings()
         {
             Chains = new List<ExecutionChainSettings>();
@@ -22,10 +26,19 @@ namespace Cila
 
         public string AbiFile {get;set;}
 
+        public string ChainId {get;set;}
+
+        public ExecutionChainType ChainType {get;set;}
+        
         private string _abi;
         public string Abi {get {
                 _abi = _abi ?? File.ReadAllText(AbiFile);
             return _abi;
         }}
+    }
+
+    public enum ExecutionChainType 
+    {
+        Ethereum
     }
 }

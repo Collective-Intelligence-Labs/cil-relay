@@ -1,19 +1,57 @@
 {
-    "RelaySettings": {
-      "RelayId": "ID",
-      "Chains": [
-        {
-          "Rpc": "https://goerli.blockpi.network/v1/rpc/public",
-          "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
-          "Contract": "0xB75d05d032fE8b0ECe0b991111f5a08Ef1d12CbF",
-          "AbiFile": "contract.json"
-        },
-        {
-          "Rpc": "https://rpc.ankr.com/eth_goerli",
-          "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
-          "Contract": "0xB75d05d032fE8b0ECe0b991111f5a08Ef1d12CbF",
-          "AbiFile": "contract.json"
-        }
-      ]
-    }
+  "RelaySettings": {
+    "RelayId": "ID",
+    "MongoDBConnectionString": "mongodb://localhost:27017",
+    "SingletonAggregateID": "8863F36E552Fd66296C0b3a3D2e4028105226DB7",
+    "Chains": [
+      //{
+      //  "ChainId": "1",
+      //  "ChaintType": "Ethereum",
+      //  "Rpc": "https://goerli.blockpi.network/v1/rpc/public",
+      //  "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
+      //  "Contract": "0xF9aD0eee5739973dc932f9513D70f592a601589B",
+      //  "AbiFile": "contract.json"
+      //},
+      //{
+      //  "ChainId": "2",
+      //  "ChaintType": "Ethereum",
+      //  "Rpc": "https://rpc.sepolia.org/",
+      //  "PrivateKey": "79901425572232ae8f52f407e48a89d006dfe308e8944bf1d3706036bdfbecde",
+      //  "Contract": "0xe8522Fc27E87B36d753c8C395A3bbCBc0eE23355",
+      //  "AbiFile": "contract.json"
+      //},
+      //{
+      //  "ChainId": "1",
+      //  "ChaintType": "Ethereum",
+      //  "Rpc": "http://127.0.0.1:7545/",
+      //  "PrivateKey": "0x6203901f60ff32c60f7ffc98ba2449979615bf9eac90c470f52fc09b09a09b0b",
+      //  "Contract": "0xaf61dfFa7137e95fCF10ACF6862D98989C2d54A5",
+      //  "AbiFile": "contract.json"
+      //},
+      {
+        "ChainId": "1",
+        "ChaintType": "Ethereum Goerli",
+        "Rpc": "https://eth-goerli.public.blastapi.io",
+        "PrivateKey": "a813851a121a15c924f24d4a2a316f6a0635714c05f939c5e760c22b45647d13",
+        "Contract": "0xd1Be6e00EE9f4195eabAbbBBBD28a173D6064C3c", // "0x5fBfA5f639060EACBb906F3Dc3b00e1c63F4D286",
+        "AbiFile": "contract.json"
+      },
+      {
+        "ChainId": "2",
+        "ChaintType": "Ethereum Sepolia",
+        "Rpc": "https://rpc2.sepolia.org",
+        "PrivateKey": "a813851a121a15c924f24d4a2a316f6a0635714c05f939c5e760c22b45647d13",
+        "Contract": "0xd1Be6e00EE9f4195eabAbbBBBD28a173D6064C3c", // "0x5fBfA5f639060EACBb906F3Dc3b00e1c63F4D286",
+        "AbiFile": "contract.json"
+      },
+      {
+        "ChainId": "3",
+        "ChaintType": "Aurora Testnet",
+        "Rpc": "https://testnet.aurora.dev",
+        "PrivateKey": "a813851a121a15c924f24d4a2a316f6a0635714c05f939c5e760c22b45647d13",
+        "Contract": "0x9A5D2Bb4EDFC10d1b4fb0Fd8677EBa06ba9E0A40", // "0x5fBfA5f639060EACBb906F3Dc3b00e1c63F4D286",
+        "AbiFile": "contract.json"
+      }
+    ]
+  }
   }

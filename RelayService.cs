@@ -13,12 +13,22 @@ namespace Cila
             _chains = new List<IExecutionChain>();
             Id = config.RelayId;
             var random = new Random();
+            var db = new Database.MongoDatabase(config);
+            var subsService = new SubscriptionsService(db);
+            var kafkraProducer = new KafkaProducer(Program.ProducerConfig());
+            var subs = subsService.GetAllFor(config.SingletonAggregateID).ToList();
             foreach (var item in config.Chains)
             {
-                var chain1 = new ExecutionChain();
-                chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi);
+                if (subs.Count(x => x.ChainId == item.ChainId) == 0)
+                {
+                    subsService.Create(config.SingletonAggregateID, item.ChainId);
+                }
+                var chain1 = new ExecutionChain(config.SingletonAggregateID, new EventStore(db), new EventsDispatcher(subsService, config), kafkraProducer);
+                chain1.ID = item.ChainId;
+                chain1.ChainService = new EthChainClient(item.Rpc,item.Contract,item.PrivateKey, item.Abi,config.SingletonAggregateID);
                 //chain1.ChainService = new ChainClientMock(random.Next(10));
-                Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}", item.Rpc,item.Contract,item.PrivateKey);
+                var relay = chain1.ChainService.GetRelayPermission().GetAwaiter().GetResult();
+                Console.WriteLine("Creating chain with RPC: {0}, Private Key: {2}, Contract: {1}, Relay: {3}", item.Rpc,item.Contract,item.PrivateKey, relay);
                 _chains.Add(chain1);
             }
         }
@@ -30,23 +40,6 @@ namespace Cila
             foreach (var chain in _chains)
             {
                 chain.Update();
-            }
-            Console.WriteLine("All chains updated");
-            var leaderEventNumber = _chains.Max(x=> x.Length);
-             Console.WriteLine("Leader chain event number: {0}", leaderEventNumber);
-            var leader = _chains.Where(x=> x.Length == leaderEventNumber).FirstOrDefault();
-            if (leader == null)
-            {
-                return;
-            }
-            foreach (var chain in _chains)
-            {
-                if (chain.ID == leader.ID)
-                {
-                    continue;
-                }
-                var newEvents = leader.GetNewEvents(chain.Length); 
-                chain.PushNewEvents(newEvents);
             }
         }
     }

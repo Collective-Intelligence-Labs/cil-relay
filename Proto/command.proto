@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+enum CommandType {
+  UNSPECIFIED = 0;
+  MINT_NFT = 1;
+  TRANSFER_NFT = 2;
+};
+
+message Command {
+  bytes aggregate_id = 1;
+  bytes cmd_signature = 2;
+  CommandType cmd_type = 3;
+  bytes cmd_payload = 4;
+}
+
+message MintNFTPayload {
+    bytes hash = 1;
+    bytes owner = 2;
+}
+
+message TransferNFTPayload {
+    bytes hash = 1;
+    bytes to = 2;
+}

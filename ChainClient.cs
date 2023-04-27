@@ -7,7 +7,12 @@ using System.Numerics;
 using Nethereum.Contracts.ContractHandlers;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Hex.HexTypes;
-using OmniChain;
+using Nethereum.Web3.Accounts;
+using System;
+
+using Cila;
+using Google.Protobuf;
+using Org.BouncyCastle.Ocsp;
 
 namespace Cila.OmniChain
 {
@@ -17,198 +22,170 @@ namespace Cila.OmniChain
         {
             Console.WriteLine($"Method: {method}");
             Console.WriteLine($"Params: {string.Join(", ", paramList)}");
-            return interceptedSendRequestAsync(method,route,paramList);
+            return interceptedSendRequestAsync(method, route, paramList);
         }
     }
 
     interface IChainClient
     {
-        
-
-        void Push(int position, IEnumerable<DomainEvent> events);
-        IEnumerable<DomainEvent> Pull(int position);
-    }
-
-    public class ChainClientMock : IChainClient
-    {
-        private List<DomainEvent> _events;
-
-        public ChainClientMock(ulong number)
-        {
-            _events = new List<DomainEvent>();
-            for (ulong i = 0; i < number; i++)
-            {
-                _events.Add(new DomainEvent{
-                EventNumber = i,
-                EventType = 1,
-                Payload = new byte[]{1,1,1,1,1}
-            });
-            }
-        }
-
-        public IEnumerable<DomainEvent> Pull(int position)
-        {
-            for (int i = position; i < _events.Count; i++)
-            {
-                yield return _events[i];
-            }
-        }
-
-        public void Push(int position, IEnumerable<DomainEvent> events)
-        {
-            _events.RemoveRange(position,_events.Count - position);
-            _events.AddRange(events.ToArray());
-        }
+        void Push(string aggregateId, UInt32 position, IEnumerable<byte[]> events);
+        Task<string> PushAsync(string aggregateId, UInt32 position, IEnumerable<byte[]> events);
+        IEnumerable<byte[]> Pull(string aggregateId, UInt32 position);
+        IEnumerable<byte[]> PullNewEvents(UInt32 position);
+        Task<IEnumerable<byte[]>> PullAsync(string aggregateId, UInt32 position);
+        Task<string> GetRelayPermission();
     }
 
     [Function("pull")]
-    public class PullFuncation: FunctionMessage
+    public class PullFuncation : FunctionMessage
     {
-        [Parameter("address", "aggregateId", 1)]
-        public string AggregateId {get;set;}
+        [Parameter("string", "aggregateId", 1)]
+        public string AggregateId { get; set; }
 
         [Parameter("uint", "startIndex", 2)]
-        public int StartIndex {get;set;}
+        public UInt32 StartIndex { get; set; }
 
         [Parameter("uint", "limit", 3)]
-        public int Limit {get;set;}
+        public UInt32 Limit { get; set; }
+    }
+
+    [Function("pullBytes")]
+    public class PullBytesFuncation : FunctionMessage
+    {
+        [Parameter("string", "aggregateId", 1)]
+        public string AggregateId { get; set; }
+
+        [Parameter("uint", "startIndex", 2)]
+        public UInt32 StartIndex { get; set; }
+
+        [Parameter("uint", "limit", 3)]
+        public UInt32 Limit { get; set; }
     }
 
     [Function("push")]
-    public class PushFuncation: FunctionMessage
+    public class PushFuncation : FunctionMessage
     {
-        [Parameter("address", "_aggregateId", 1)]
+        [Parameter("string", "_aggregateId", 1)]
         public string AggregateId { get; set; }
 
         [Parameter("uint", "_position", 2)]
-        public int Position {get;set;}
+        public UInt32 Position { get; set; }
 
         [Parameter("DomainEvent[]", "events", 3)]
-        public List<DomainEvent> Events {get;set;}
+        public List<DomainEvent> Events { get; set; }
+    }
+
+    [Function("pushBytes")]
+    public class PushBytesFunction : FunctionMessage
+    {
+        [Parameter("string", "aggregateId", 1)]
+        public string AggregateId { get; set; }
+
+        [Parameter("uint", "startIndex", 2)]
+        public UInt32 Position { get; set; }
+
+        [Parameter("bytes[]", "evnts", 3)]
+        public List<byte[]> Events { get; set; }
     }
 
     public class EthChainClient : IChainClient
     {
         private Web3 _web3;
         private ContractHandler _handler;
-        private Event<OmnichainEvent> _eventHandler;
-        private NewFilterInput _filterInput;
         private string _privateKey;
+        private readonly string _singletonAggregateID;
+        private readonly Account _account;
 
-        private Contract _contract;
-
-        public EthChainClient(string rpc, string contract, string privateKey, string abi)
+        public EthChainClient(string rpc, string contract, string privateKey, string abi, string singletonAggregateID)
         {
-            
+
             _privateKey = privateKey;
-            var account = new Nethereum.Web3.Accounts.Account(privateKey);
-            _web3 = new Web3(account, rpc);
-            _web3.Client.OverridingRequestInterceptor = new LoggingInterceptor();
+            _singletonAggregateID = singletonAggregateID;
+            _account = new Nethereum.Web3.Accounts.Account(privateKey);
+            Console.WriteLine("The account {0} is used to connect to contract {1}", _account.Address, contract);
+            _web3 = new Web3(_account, rpc, log: new EthLogger());
             _handler = _web3.Eth.GetContractHandler(contract);
-            _contract = _web3.Eth.GetContract(abi, contract);
-            _eventHandler = _handler.GetEvent<OmnichainEvent>();
-
-            var block = _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync().Result;
-            _filterInput = _eventHandler.CreateFilterInput(new BlockParameter(block.ToUlong() - 1024), BlockParameter.CreateLatest());
-            //
         }
 
-        public const int MAX_LIMIT = 1000000;
-        public const string AGGREGATE_ID = "0x4215a6F868D07227f1e2827A6613d87A5961B5f6";
+        public const UInt32 MAX_LIMIT = 1000000;
 
-
-           
-
-        public async Task<IEnumerable<DomainEvent>> Pull(int position)
+        public async Task<IEnumerable<byte[]>> PullAsync(string aggregateId, UInt32 position)
         {
-             Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, AGGREGATE_ID);
-             var handler = _handler.GetFunction<PullFuncation>();
-             var request = new PullFuncation{
-                StartIndex = position,
-                    Limit = MAX_LIMIT,
-                    AggregateId = AGGREGATE_ID
-                };
-                var result =  await handler.CallAsync<PullEventsDTO>(request);
-                Console.WriteLine("Chain Service Pull executed: {0}", result);
-                return result.Events;   
-        }
+            Console.WriteLine("Chain Service Pull execution started from position: {0}, aggregate: {1}", position, aggregateId);
+            var handler = _handler.GetFunction<PullBytesFuncation>();
 
-        public async Task<IEnumerable<DomainEvent>> Pull3(int position)
-        {
-            var logs = await _eventHandler.GetAllChangesAsync(_filterInput);
-            var list = new List<DomainEvent>();
-                foreach (var log in logs)
-                {
-                    Console.WriteLine($"Event Value: {log.Event.Version}, Sender: {log.Event.Type}");
-                    //list.Add(OmniChainSerializer.DeserializeWithMessageType(log.Event.Payload));
-                    list.Add(new DomainEvent
-                    {
-                        Payload = log.Event.Payload,
-                        EventNumber = log.Event.Version,
-                        EventType = log.Event.Type
-                    });
-                    
-                    
-                }
-                _filterInput = _eventHandler.CreateFilterInput(BlockParameter.CreateLatest(),BlockParameter.CreateLatest());
-                return list;
-        }
-
-        public async Task ObserveEventAsync(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
+            var request = new PullBytesFuncation
             {
-                // Wait for a short period before checking for new events again.
-                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-            }
+                StartIndex = position,
+                Limit = MAX_LIMIT,
+                AggregateId = aggregateId
+            };
+            var result = await handler.CallAsync<PullEventsDTO>(request);
+
+            Console.WriteLine("Chain Service Pull executed: {0}", result);
+            return result.Events;
         }
 
-        public async Task<string> Push(int position, IEnumerable<DomainEvent> events)
+
+        public Task<string> GetRelayPermission()
         {
-            var handler = _handler.GetFunction<PushFuncation>();
-            var request = new PushFuncation{
+            return _handler.GetFunction<ReadRelay>().CallAsync<string>();
+        }
+
+        public async Task<string> PushAsync(string aggregateId, UInt32 position, IEnumerable<byte[]> events)
+        {
+
+            var _queryHandler = _web3.Eth.GetContractQueryHandler<PushBytesFunction>();
+            var txHandler = _web3.Eth.GetContractTransactionHandler<PushBytesFunction>();
+
+            var request = new PushBytesFunction
+            {
                 Events = events.ToList(),
                 Position = position,
-                AggregateId = "0"
+                AggregateId = aggregateId
             };
-            var result = await handler.CallAsync<string>(request);
-            Console.WriteLine("Chain Service Push} executed: {0}", result);
+
+            foreach (var ev in request.Events)
+            {
+                Console.WriteLine("Event: " + Convert.ToHexString(ev));
+            }
+
+            var gasEstimate = await txHandler.EstimateGasAsync(_handler.ContractAddress, request);
+            request.Gas = new BigInteger(2 * gasEstimate.ToUlong());
+            request.GasPrice = _web3.Eth.GasPrice.SendRequestAsync().GetAwaiter().GetResult();
+            var result = await txHandler.SendRequestAsync(_handler.ContractAddress, request);
+
+            Console.WriteLine("Chain Service Push executed: {0}", result);
             return result;
+
         }
 
-        public DomainEvent Deserizlize(byte[] data)
+        public IEnumerable<byte[]> Pull(string aggregateId, UInt32 position)
         {
-            return new DomainEvent();
+            return PullAsync(aggregateId, position).GetAwaiter().GetResult();
         }
 
-        IEnumerable<DomainEvent> IChainClient.Pull(int position)
+        public void Push(string aggregateId, UInt32 position, IEnumerable<byte[]> events)
         {
-            return Pull(position).GetAwaiter().GetResult();
+            PushAsync(aggregateId, position, events).GetAwaiter().GetResult();
         }
 
-        void IChainClient.Push(int position, IEnumerable<DomainEvent> events)
+
+        public IEnumerable<byte[]> PullNewEvents(uint position)
         {
-            Push(position,events).GetAwaiter().GetResult();
+            return this.Pull(_singletonAggregateID, position);
         }
+    }
+
+    [Function("relay", "address")]
+    public class ReadRelay
+    {
     }
 
     [FunctionOutput]
-    public class PullEventsDTO: IFunctionOutputDTO
+    public class PullEventsDTO : IFunctionOutputDTO
     {
-        [Parameter("bytes[]",order:1)]
-        public List<DomainEvent> Events {get;set;}
-    }
-
-    [Event("OmnichainEvent")]
-    public class OmnichainEvent: IEventDTO
-    {
-        [Parameter("uint64", "_idx", 1, true)]
-        public ulong Version { get; set; }
-
-        [Parameter("uint8", "_type", 2, true)]
-        public byte Type { get; set; }
-
-        [Parameter("bytes", "_payload", 3, true)]
-        public byte[] Payload { get; set; }
+        [Parameter("bytes[]", order: 1)]
+        public List<byte[]> Events { get; set; }
     }
 }

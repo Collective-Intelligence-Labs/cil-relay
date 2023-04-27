@@ -1,25 +1,35 @@
 using Cila;
-using Example.Protobuf;
 using Google.Protobuf;
 
-namespace OmniChain
+namespace Cila.OmniChain
 {
     public class OmniChainSerializer
     {
 
         public static DomainEvent DeserializeDomainEvent(byte[] data)
         {
-            return new DomainEvent();
+            var msg = new DomainEvent();
+            msg.MergeFrom(data);
+            return msg;
         }
 
-        public static IMessage DeserializeWithMessageType(byte[] data)
+        public static byte[] Serialize(DomainEvent e)
+        {
+            return e.ToByteArray();
+        }
+
+        public static void ValidateData(byte[] data)
         {
             if (data == null || data.Length < 2)
             {
                 throw new ArgumentException("Invalid data");
             }
+        }
 
-            OmniChainMessageType messageType = (OmniChainMessageType)data[0];
+        public static IMessage DeserializeWithMessageType(byte[] data)
+        {
+            ValidateData(data);
+            DomainEventType messageType = (DomainEventType)data[0];
             byte[] messageBytes = new byte[data.Length - 1];
             Buffer.BlockCopy(data, 1, messageBytes, 0, messageBytes.Length);
 
@@ -27,11 +37,11 @@ namespace OmniChain
 
             switch (messageType)
             {
-                case OmniChainMessageType.ItemIssued:
-                    message = new ItemMinted();
+                case DomainEventType.NftMinted:
+                    message = new NFTMintedPayload();
                     break;
-                case OmniChainMessageType.ItemTransfered:
-                    message = new ItemTransfered();
+                case DomainEventType.NftTransfered:
+                    message = new NFTTransferedPayload();
                     break;
                 default:
                     throw new ArgumentException("Invalid message type");
